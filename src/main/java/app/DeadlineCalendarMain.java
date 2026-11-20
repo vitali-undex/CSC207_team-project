@@ -113,7 +113,7 @@ public final class DeadlineCalendarMain {
         }
     }
 
-    private static URI canvasOrigin(String address) {
+    static URI canvasOrigin(String address) {
         final URI uri = URI.create(address);
         if (!"https".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null || uri.getUserInfo() != null
                 || uri.getQuery() != null || uri.getFragment() != null
