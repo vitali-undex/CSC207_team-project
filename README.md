@@ -253,3 +253,14 @@ From the Quercus project timeline:
 
 For command-line experiments with the API, copy `.env.example` to `.env` and fill it in. `.env` is ignored by git
 — never commit a token.
+
+### Running the standalone deadlines calendar
+
+Open `app.DeadlineCalendarMain` in IntelliJ and add `CANVAS_API_TOKEN` to its run configuration.
+The optional `CANVAS_BASE_URL` defaults to `https://q.utoronto.ca`. Use the same address and token
+when reopening the app offline so it can locate the last successful snapshot in `~/.quercus-tracker/`.
+The standalone launcher provides the calendar until the shared account screen is ready.
+
+The calendar opens on today's date in Toronto. Choose a month and year directly or use the arrows
+to move month by month, including across years. Select a day to view all its deadlines with their
+times and points. Use **Refresh** to retry a failed sync or fetch updates for the selected month.
