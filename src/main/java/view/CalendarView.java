@@ -53,6 +53,7 @@ public final class CalendarView extends JPanel {
     private final CalendarViewModel model;
     private final ViewDeadlinesCalendarController controller;
     private final Clock clock;
+    private final boolean connected;
     private final JButton previous = new JButton("‹");
     private final JButton next = new JButton("›");
     private final JButton today = new JButton("Today");
@@ -66,11 +67,13 @@ public final class CalendarView extends JPanel {
     private final JButton[] days = new JButton[WEEKS * DAYS_PER_WEEK];
     private boolean updatingControls;
 
-    public CalendarView(CalendarViewModel model, ViewDeadlinesCalendarController controller, Clock clock) {
+    public CalendarView(CalendarViewModel model, ViewDeadlinesCalendarController controller, Clock clock,
+                        boolean connected) {
         super(new BorderLayout(0, 16));
         this.model = model;
         this.controller = controller;
         this.clock = clock;
+        this.connected = connected;
         year = new JSpinner(new SpinnerNumberModel(model.getMonth().getYear(), FIRST_YEAR, LAST_YEAR, 1));
         year.setEditor(new JSpinner.NumberEditor(year, "0"));
         year.getAccessibleContext().setAccessibleName("Year");
@@ -95,7 +98,15 @@ public final class CalendarView extends JPanel {
     }
 
     public void open() {
-        loadDate(LocalDate.now(clock));
+        open(LocalDate.now(clock));
+    }
+
+    public void open(LocalDate date) {
+        loadDate(date);
+    }
+
+    public LocalDate getSelectedDate() {
+        return model.getSelectedDate();
     }
 
     private JPanel buildHeader() {
@@ -188,7 +199,10 @@ public final class CalendarView extends JPanel {
     }
 
     private void loadDate(LocalDate date) {
-        if (!model.isLoading()) {
+        if (!connected) {
+            model.browseDate(date);
+        }
+        else if (!model.isLoading()) {
             model.beginLoad(date);
             final YearMonth target = YearMonth.from(date);
             new SwingWorker<Void, Void>() {
@@ -225,10 +239,11 @@ public final class CalendarView extends JPanel {
         final boolean ready = !model.isLoading();
         previous.setEnabled(ready && !displayed.equals(YearMonth.of(FIRST_YEAR, Month.JANUARY)));
         next.setEnabled(ready && !displayed.equals(YearMonth.of(LAST_YEAR, Month.DECEMBER)));
-        for (java.awt.Component control : List.of(month, year, today, refresh)) {
+        for (java.awt.Component control : List.of(month, year, today)) {
             control.setEnabled(ready);
         }
-        status.setText(model.getStatus());
+        refresh.setEnabled(ready && connected);
+        status.setText(connected ? model.getStatus() : "Connect Quercus to see your deadlines.");
         final int offset = displayed.atDay(1).getDayOfWeek().getValue() - 1;
         for (int index = 0; index < days.length; index++) {
             final int day = index - offset + 1;
@@ -271,7 +286,10 @@ public final class CalendarView extends JPanel {
 
         dayTitle.setText(DAY_TITLE.format(selected));
         final List<DeadlineSummary> selectedDeadlines = model.getDeadlines(selected);
-        if (selectedDeadlines.isEmpty()) {
+        if (!connected) {
+            details.setListData(new String[]{"Your synced deadlines will appear here."});
+        }
+        else if (selectedDeadlines.isEmpty()) {
             details.setListData(new String[]{model.isLoading() ? "Loading…" : "No deadlines for this day"});
         }
         else {

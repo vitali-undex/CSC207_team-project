@@ -42,6 +42,18 @@ class CalendarAppBuilderTest {
     Path directory;
 
     @Test
+    void browsesCalendarWithoutQuercusCredentials() throws Exception {
+        SwingUtilities.invokeAndWait(() -> {
+            final CalendarView preview = new CalendarAppBuilder().buildPreview(CLOCK);
+            assertEquals(LocalDate.of(2027, 12, 31), preview.getSelectedDate());
+            button(preview, "Next month").doClick();
+            assertEquals(LocalDate.of(2028, 1, 1), preview.getSelectedDate());
+            assertTrue(components(preview, JLabel.class).stream()
+                    .anyMatch(label -> "Connect Quercus to see your deadlines.".equals(label.getText())));
+        });
+    }
+
+    @Test
     void navigatesAcrossYearsSelectsLeapDayAndReopensOffline() throws Exception {
         final HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         final URI origin = URI.create("http://127.0.0.1:" + server.getAddress().getPort());

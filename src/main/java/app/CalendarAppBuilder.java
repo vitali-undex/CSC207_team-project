@@ -14,6 +14,13 @@ import java.time.LocalDate;
 
 /** Composes the calendar for either a standalone window or a tab in the main app. */
 public final class CalendarAppBuilder {
+    public CalendarView buildPreview(Clock clock) {
+        final CalendarViewModel viewModel = new CalendarViewModel(LocalDate.now(clock));
+        final ViewDeadlinesCalendarController controller =
+                new ViewDeadlinesCalendarController(input -> { }, viewModel, clock.getZone());
+        return new CalendarView(viewModel, controller, clock, false);
+    }
+
     public CalendarView build(CalendarAssignmentDataAccessInterface online,
                               CalendarCacheDataAccessInterface cache, Clock clock) {
         final CalendarViewModel viewModel = new CalendarViewModel(LocalDate.now(clock));
@@ -22,6 +29,6 @@ public final class CalendarAppBuilder {
         final ViewDeadlinesCalendarInteractor interactor = new ViewDeadlinesCalendarInteractor(online, cache, presenter);
         final ViewDeadlinesCalendarController controller =
                 new ViewDeadlinesCalendarController(interactor, viewModel, clock.getZone());
-        return new CalendarView(viewModel, controller, clock);
+        return new CalendarView(viewModel, controller, clock, true);
     }
 }

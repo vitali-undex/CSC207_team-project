@@ -28,11 +28,19 @@ public final class CalendarViewModel {
     }
 
     public void beginLoad(LocalDate date) {
+        showDate(date, "Loading Quercus deadlines…", true);
+    }
+
+    public void browseDate(LocalDate date) {
+        showDate(date, "", false);
+    }
+
+    private void showDate(LocalDate date, String message, boolean loadingMonth) {
         month = YearMonth.from(date);
         selectedDate = date;
         deadlines = Map.of();
-        status = "Loading Quercus deadlines…";
-        loading = true;
+        status = message;
+        loading = loadingMonth;
         changes.firePropertyChange("calendar", null, this);
     }
 

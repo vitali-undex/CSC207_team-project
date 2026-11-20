@@ -249,14 +249,15 @@ From the Quercus project timeline:
 
 1. Open the project in IntelliJ as a Maven project, using Java 11 or newer.
 2. Create a Quercus access token: Quercus → Account → Settings → **New access token**.
-3. Run `app.Main` and paste the token when prompted.
+3. Run `app.Main` to open the calendar. To load deadlines, click **Connect Quercus** and paste your token.
 
 For command-line experiments with the API, copy `.env.example` to `.env` and fill it in. `.env` is ignored by git
 — never commit a token.
 
 ### Running the standalone deadlines calendar
 
-Run `app.Main` in IntelliJ. Set `CANVAS_API_TOKEN` in its run configuration to skip the token prompt.
+Run `app.Main` in IntelliJ to browse the calendar before connecting. Set `CANVAS_API_TOKEN` in its run
+configuration if you want it to sync automatically.
 The optional `CANVAS_BASE_URL` defaults to `https://q.utoronto.ca`. Use the same address and token
 when reopening the app offline so it can locate the last successful snapshot in `~/.quercus-tracker/`.
 The standalone launcher provides the calendar until the shared account screen is ready.
