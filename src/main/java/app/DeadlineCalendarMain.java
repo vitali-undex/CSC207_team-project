@@ -6,6 +6,7 @@ import view.CalendarView;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JPasswordField;
 import javax.swing.SwingUtilities;
 import java.awt.Dimension;
 import java.net.URI;
@@ -17,6 +18,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Locale;
 
@@ -30,10 +32,8 @@ public final class DeadlineCalendarMain {
     }
 
     private static void openWindow() {
-        final String token = System.getenv("CANVAS_API_TOKEN");
+        final String token = readToken();
         if (token == null || token.isBlank()) {
-            JOptionPane.showMessageDialog(null, "Set CANVAS_API_TOKEN before starting the deadline calendar.",
-                    "Quercus Calendar", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
 
@@ -65,6 +65,27 @@ public final class DeadlineCalendarMain {
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
         calendar.open();
+    }
+
+    private static String readToken() {
+        final String configuredToken = System.getenv("CANVAS_API_TOKEN");
+        if (configuredToken != null && !configuredToken.isBlank()) {
+            return configuredToken.strip();
+        }
+
+        final JPasswordField field = new JPasswordField(28);
+        field.getAccessibleContext().setAccessibleName("Quercus access token");
+        final int answer = JOptionPane.showConfirmDialog(null,
+                new Object[]{"Paste your Quercus personal access token.", field},
+                "Connect Quercus", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        final char[] password = field.getPassword();
+        try {
+            return answer == JOptionPane.OK_OPTION ? new String(password).strip() : null;
+        }
+        finally {
+            Arrays.fill(password, '\0');
+            field.setText("");
+        }
     }
 
     private static URI canvasOrigin(String address) {
