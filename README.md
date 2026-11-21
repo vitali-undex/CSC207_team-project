@@ -226,6 +226,25 @@ The code follows Clean Architecture, as in the `ca-login` lab code:
 - Has been checked with Checkstyle (the rubric requires a tool like it for the top two code-quality levels).
 - Contains only your own use case's code. Graders check the git log for each person's contribution.
 
+**CI and Checkstyle**
+
+- GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs two checks on Java 11 for every pull
+  request into `dev` or `main` and every push to `dev`:
+  - **Build and test** compiles the code and runs the unit tests. If it fails, the code doesn't build or a test
+    fails.
+  - **Checkstyle** fails whenever the code has a Checkstyle violation. Each violation shows up on the code in the
+    pull request's "Files changed" tab and in a table on the check's summary page.
+- Checkstyle uses the team's rules in [`config/checkstyle/checkstyle.xml`](config/checkstyle/checkstyle.xml): Google
+  Java Style with our 4-space indentation, `}` and `else`/`catch`/`finally` on separate lines, underscores in
+  package names and IntelliJ's import order (the top of that file lists each change). A red Checkstyle check doesn't
+  stop a merge yet, but fix your own violations before asking for review.
+- Before you open a pull request, run `mvn checkstyle:check` and fix what it lists. Each line gives the file, the
+  line number and the rule.
+- In IntelliJ, install the **CheckStyle-IDEA** plugin. In Settings → Tools → Checkstyle, set the Checkstyle version
+  to **10.26.1**, add `config/checkstyle/checkstyle.xml` as a local configuration file (tick "Store relative to
+  project location", and leave any property values empty), then tick **Active** next to it. The Checkstyle tool
+  window then checks the current file or the whole project.
+
 ## Milestones
 
 From the Quercus project timeline:
