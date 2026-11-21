@@ -93,14 +93,18 @@ controller and presenter, and its part of the UI.
   and the grading scheme is saved.
 - **Main success scenario:**
   1. The student picks a course.
-  2. The system loads the course's assignment groups and the student's scores.
-  3. The student enters each group's weight from the syllabus, and how many lowest scores it drops.
+  2. The system shows the course's assignment groups with the student's average in each. If a grading scheme was
+     saved for the course, the system fills it in and shows the current grade straight away.
+  3. The student enters each group's weight from the syllabus, how many of its lowest marks are dropped, and
+     whether its marks count by points or each one equally.
   4. The system calculates each group's average and the weighted grade over the groups graded so far.
   5. The system saves the grading scheme and shows the grade with its breakdown.
 - **Extensions:**
-  - **3a.** The weights don't add up to 100%: the system shows the difference and asks for a fix.
-  - **4a.** Nothing is graded yet: the system shows the scheme with "no grade yet".
-  - **2a.** Quercus can't be reached: the system uses the saved scores and says when they were last updated.
+  - **3a.** The weights don't add up to 100%: the system shows how far off they are, and nothing is saved.
+  - **3b.** A weight isn't a number from 0 to 100, or a drop count isn't a whole number of 0 or more: the system
+    says so, and nothing is saved.
+  - **4a.** Nothing is graded yet: the system saves the scheme and shows "no grade yet".
+  - **2a.** The courses or scores can't be loaded: the system says so.
 
 ### Use case 4: Read course announcements — lead: Brian
 
@@ -157,8 +161,14 @@ A first design — each lead refines the entities their use case needs.
 - **Course:** `id`, `code`, `name`, `term`
 - **Assignment:** `id`, `courseId`, `name`, `dueAt`, `pointsPossible`, `groupId`, `score` (empty until graded);
   `isGraded()`, `isDueOn(date)`
-- **AssignmentGroup:** `id`, `courseId`, `name`, `weight`, `dropLowest`, `assignments`; `average()`
-- **GradingScheme:** `courseId`, `groups`; `totalWeight()`, `weightedGrade()`, `isComplete()`
+- **Gradebook** (use case 3): `courseId`, `courseName`, `groups`
+- **AssignmentGroup:** `id`, `name`, `assignments`; `getGradedCount()`, `average(dropLowest, averaging)`
+- **GradedAssignment:** `name`, `pointsEarned` (empty until graded), `pointsPossible`; `isGraded()`, `getPercent()`
+- **GradingScheme:** `courseId`, `weights`; `getTotalWeight()`, `isComplete()`, `weightedGrade(gradebook)`,
+  `gradedWeight(gradebook)`
+- **GroupWeight:** `groupId`, `weightPercent`, `dropLowest`, `averaging`
+- **AveragingStrategy:** how a group's marks are combined (Strategy pattern): `PointsAveraging` (Quercus's way) or
+  `EqualWeightAveraging` (each assignment counts the same); `average(assignments)`
 - **Announcement:** `id`, `courseId`, `title`, `message`, `postedAt`, `read`; `markRead()`
 - **Task:** `id`, `title`, `courseId` (optional), `dueDate` (optional), `done`; `complete()`
 - **StudentAccount:** `name`, `quercusUrl`, `courses`
@@ -174,7 +184,7 @@ is never committed (see [Running the app](#running-the-app)).
 | --- | --- | --- |
 | 1 | `GET /users/self`, `GET /courses?enrollment_state=active` | Yes, from the command line (Nov 16). Not yet from Java. |
 | 2 | `GET /courses/:id/assignments` (uses `due_at`) | Yes, from the command line (Nov 16). Not yet from Java. |
-| 3 | `GET /courses/:id/assignment_groups?include[]=assignments&include[]=submission` | Not yet |
+| 3 | `GET /courses/:id/assignment_groups?include[]=assignments&include[]=submission` | Not yet. Use case 3 runs on made-up demo courses until use case 1 can connect Quercus. |
 | 4 | `GET /announcements?context_codes[]=course_:id` | Yes, from the command line (Nov 16). Not yet from Java. |
 | 5 | None — tasks are stored locally | — |
 
@@ -185,7 +195,7 @@ the repo:
 
 - the connected account and course list (use case 1)
 - the last loaded deadlines, scores and announcements, so the app works offline (use cases 2–4)
-- grading schemes and read markers (use cases 3–4)
+- grading schemes (use case 3, done: `grading-schemes.json`, one entry per course) and read markers (use case 4)
 - tasks (use case 5)
 
 The final demo should show both saving and loading: close the app, reopen it offline, and the data is still there.
@@ -250,6 +260,10 @@ From the Quercus project timeline:
 1. Open the project in IntelliJ as a Maven project, using Java 11 or newer.
 2. Create a Quercus access token: Quercus → Account → Settings → **New access token**.
 3. Run `app.Main`, choose **Connect Quercus**, and paste the token.
+
+To try the grade calculator (use case 3) on its own, run `app.GradeCalculatorMain`. It uses made-up demo courses,
+so no token is needed, and saves the weights you enter to `~/.quercus-tracker/grading-schemes.json`. Delete that file
+to start the demo fresh.
 
 For command-line experiments with the API, copy `.env.example` to `.env` and fill it in. `.env` is ignored by git
 — never commit a token.
