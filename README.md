@@ -127,13 +127,17 @@ controller and presenter, and its part of the UI.
 - **Success outcome:** The task list is saved and shown, sorted by due date.
 - **Main success scenario:**
   1. The student enters a title, an optional course and an optional due date.
-  2. The system checks that the title isn't empty.
+  2. The system checks that the title is not empty.
   3. The system adds the task and saves the list.
-  4. The system shows the updated list, sorted by due date.
+  4. The system shows the updated list, sorted by due date, with overdue tasks marked.
   5. Later, the student ticks a task as done, and the system saves it and shows it as done.
 - **Extensions:**
+  - **1a.** The due date is in the past: the system asks the student to confirm. If they say no, nothing
+    is saved.
   - **2a.** The title is empty: the system asks for one, and nothing is saved.
-  - **1a.** The due date is in the past: the system asks the student to confirm.
+  - **5a.** The student ticked a task by mistake: they untick it, and the system saves it and shows it as
+    not done.
+  - **5b.** The student no longer needs a task: they delete it, and the system removes it and saves the list.
 
 ## MVP
 
@@ -160,7 +164,8 @@ A first design — each lead refines the entities their use case needs.
 - **AssignmentGroup:** `id`, `courseId`, `name`, `weight`, `dropLowest`, `assignments`; `average()`
 - **GradingScheme:** `courseId`, `groups`; `totalWeight()`, `weightedGrade()`, `isComplete()`
 - **Announcement:** `id`, `courseId`, `title`, `message`, `postedAt`, `read`; `markRead()`
-- **Task:** `id`, `title`, `courseId` (optional), `dueDate` (optional), `done`; `complete()`
+- **Task:** `id`, `title`, `courseId` (optional), `dueDate` (optional), `done`; `complete()`, `reopen()`,
+  `isOverdue(today)`
 - **StudentAccount:** `name`, `quercusUrl`, `courses`
 
 ## API usage
@@ -272,3 +277,7 @@ From the Quercus project timeline:
 
 For command-line experiments with the API, copy `.env.example` to `.env` and fill it in. `.env` is ignored by git
 — never commit a token.
+
+**Current state:** `app.Main` opens a window with only the **My tasks** tab (use case 5). Tasks are kept in
+memory for now, so they are not there after the app closes. Run the unit tests with `mvn test`, or in IntelliJ
+right-click `src/test/java` and choose **Run 'All Tests'**.
