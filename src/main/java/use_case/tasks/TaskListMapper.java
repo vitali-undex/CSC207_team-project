@@ -8,8 +8,8 @@ import java.util.List;
 
 /**
  * Sorts tasks and turns them into summaries for the presenter. The add task,
- * complete task and view tasks interactors all use this, so the task list is
- * always shown in the same order.
+ * complete task, delete task and view tasks interactors all use this, so the
+ * task list is always shown in the same order.
  */
 public class TaskListMapper {
 
