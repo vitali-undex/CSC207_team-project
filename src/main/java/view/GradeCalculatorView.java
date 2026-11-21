@@ -243,8 +243,8 @@ public class GradeCalculatorView extends JPanel implements PropertyChangeListene
         for (GroupRowState row : state.getRows()) {
             rowGroupIds.add(row.getGroupId());
             tableModel.addRow(new Object[] {row.getName(), row.getWeightText(), row.getAveraging(),
-                row.getDropText(), row.getKeepBestText(), row.isCapAtFullMarks(),
-                row.getAverageText(), row.getGradedText()});
+                    row.getDropText(), row.getKeepBestText(), row.isCapAtFullMarks(),
+                    row.getAverageText(), row.getGradedText()});
         }
         calculateButton.setEnabled(!state.getRows().isEmpty());
     }

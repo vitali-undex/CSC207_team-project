@@ -1,8 +1,8 @@
 package data_access;
 
 import entity.AssignmentGroup;
-import entity.GradedAssignment;
 import entity.Gradebook;
+import entity.GradedAssignment;
 import use_case.calculate_grade.CourseOption;
 import use_case.calculate_grade.GradeSourceDataAccessInterface;
 
