@@ -95,14 +95,15 @@ controller and presenter, and its part of the UI.
   1. The student picks a course.
   2. The system shows the course's assignment groups with the student's average in each. If a grading scheme was
      saved for the course, the system fills it in and shows the current grade straight away.
-  3. The student enters each group's weight from the syllabus, how many of its lowest marks are dropped, and
-     whether its marks count by points or each one equally.
+  3. The student enters each group's weight from the syllabus, whether its marks count by points or each one
+     equally, and its rules: drop the lowest marks, count only the best ones, or cap bonus marks at 100%.
   4. The system calculates each group's average and the weighted grade over the groups graded so far.
   5. The system saves the grading scheme and shows the grade with its breakdown.
 - **Extensions:**
   - **3a.** The weights don't add up to 100%: the system shows how far off they are, and nothing is saved.
-  - **3b.** A weight isn't a number from 0 to 100, or a drop count isn't a whole number of 0 or more: the system
-    says so, and nothing is saved.
+  - **3b.** A weight isn't a number from 0 to 100, a drop or count-best number isn't a whole number of 0 or
+    more, or a group both drops its lowest marks and counts only its best: the system says so, and nothing is
+    saved.
   - **4a.** Nothing is graded yet: the system saves the scheme and shows "no grade yet".
   - **2a.** The courses or scores can't be loaded: the system says so.
 
@@ -166,9 +167,13 @@ A first design — each lead refines the entities their use case needs.
 - **GradedAssignment:** `name`, `pointsEarned` (empty until graded), `pointsPossible`; `isGraded()`, `getPercent()`
 - **GradingScheme:** `courseId`, `weights`; `getTotalWeight()`, `isComplete()`, `weightedGrade(gradebook)`,
   `gradedWeight(gradebook)`
-- **GroupWeight:** `groupId`, `weightPercent`, `dropLowest`, `averaging`
+- **GroupWeight:** `groupId`, `weightPercent`, `averaging`, `dropLowest`, `keepBest`, `capAtFullMarks`;
+  `getRule()`
 - **AveragingStrategy:** how a group's marks are combined (Strategy pattern): `PointsAveraging` (Quercus's way) or
   `EqualWeightAveraging` (each assignment counts the same); `average(assignments)`
+- **AveragingRule:** a syllabus rule wrapped around a strategy (Decorator pattern): `DropLowest`, `KeepBest`
+  ("best 8 of 10 count") and `CapAtFullMarks`. Rules stack, for example
+  `new CapAtFullMarks(new DropLowest(new PointsAveraging(), 1))`.
 - **Announcement:** `id`, `courseId`, `title`, `message`, `postedAt`, `read`; `markRead()`
 - **Task:** `id`, `title`, `courseId` (optional), `dueDate` (optional), `done`; `complete()`
 - **StudentAccount:** `name`, `quercusUrl`, `courses`
@@ -210,6 +215,9 @@ The code follows Clean Architecture, as in the `ca-login` lab code:
   each interactor depending only on the methods it calls (ISP), and on interfaces rather than on Quercus or files
   (DIP).
 - `app.AppBuilder` creates every object and passes the dependencies in through constructors.
+- Design patterns beyond the starter code: use case 3 averages each group with a **Strategy** (by points or
+  equally) and wraps it in **Decorators** for syllabus rules (drop lowest, count best, cap at 100%), so a new rule
+  is one new class and nothing else changes.
 
 ## Team workflow
 
