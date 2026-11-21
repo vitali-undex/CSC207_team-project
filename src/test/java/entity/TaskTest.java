@@ -15,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TaskTest {
     private static final LocalDate TODAY = LocalDate.of(2026, 11, 16);
+
     @Test
     void constructorKeepsAllFields() {
         Task task = new Task("t1", "Study for the midterm", "c1", TODAY, true);
