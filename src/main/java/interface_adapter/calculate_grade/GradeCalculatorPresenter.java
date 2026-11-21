@@ -5,6 +5,7 @@ import use_case.calculate_grade.CalculateGradeOutputBoundary;
 import use_case.calculate_grade.CalculateGradeOutputData;
 import use_case.calculate_grade.CourseOption;
 import use_case.calculate_grade.GroupResult;
+import use_case.calculate_grade.GroupSettings;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
@@ -100,10 +101,12 @@ public class GradeCalculatorPresenter implements CalculateGradeOutputBoundary {
         }
         final List<GroupRowState> rows = new ArrayList<>();
         for (GroupResult group : outputData.getGroups()) {
+            final GroupSettings settings = group.getSettings();
             rows.add(new GroupRowState(group.getGroupId(), group.getName(),
-                    numberFormat.format(group.getWeightPercent()),
-                    Integer.toString(group.getDropLowest()),
-                    choiceFor(group.getAveragingId(), averagingChoices), averageText(group),
+                    numberFormat.format(settings.getWeightPercent()),
+                    choiceFor(settings.getAveragingId(), averagingChoices),
+                    Integer.toString(settings.getDropLowest()), keepBestText(settings),
+                    settings.isCapAtFullMarks(), averageText(group),
                     group.getGradedCount() + " of " + group.getAssignmentCount()));
         }
         final GradeCalculatorState state = viewModel.getState();
@@ -125,6 +128,13 @@ public class GradeCalculatorPresenter implements CalculateGradeOutputBoundary {
             }
         }
         return new Choice(averagingId, averagingId);
+    }
+
+    private static String keepBestText(GroupSettings settings) {
+        if (settings.getKeepBest() == 0) {
+            return "";
+        }
+        return Integer.toString(settings.getKeepBest());
     }
 
     private String averageText(GroupResult group) {

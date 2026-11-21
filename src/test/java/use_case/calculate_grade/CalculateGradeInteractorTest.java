@@ -46,13 +46,20 @@ class CalculateGradeInteractorTest {
                         List.of(new GradedAssignment("Final exam", null, 100))))));
         source.gradebooks.put("course-2", new Gradebook("course-2", "Course Two", List.of(
                 new AssignmentGroup("work", "Work", List.of(new GradedAssignment("Essay", null, 10))))));
+        source.gradebooks.put("course-3", new Gradebook("course-3", "Course Three", List.of(
+                new AssignmentGroup("labs", "Labs", List.of(new GradedAssignment("Lab 1", 3.0, 2))))));
         store = new FakeSchemeStore();
         presenter = new RecordingPresenter();
         interactor = new CalculateGradeInteractor(source, store, presenter);
     }
 
     private static GroupWeightInput input(String groupId, Double weight, Integer drop, String averaging) {
-        return new GroupWeightInput(groupId, weight, drop, averaging);
+        return new GroupWeightInput(groupId, weight, averaging, drop, 0, false);
+    }
+
+    private static GroupWeightInput withRules(String groupId, Double weight, Integer drop, Integer best,
+                                              boolean cap) {
+        return new GroupWeightInput(groupId, weight, "points", drop, best, cap);
     }
 
     private void calculate(String courseId, GroupWeightInput... inputs) {
@@ -108,9 +115,11 @@ class CalculateGradeInteractorTest {
         GroupResult quizzes = shown.getGroups().get(0);
         assertEquals("quizzes", quizzes.getGroupId());
         assertEquals("Quizzes", quizzes.getName());
-        assertEquals(0.0, quizzes.getWeightPercent(), DELTA);
-        assertEquals(0, quizzes.getDropLowest());
-        assertEquals(PointsAveraging.ID, quizzes.getAveragingId());
+        assertEquals(0.0, quizzes.getSettings().getWeightPercent(), DELTA);
+        assertEquals(0, quizzes.getSettings().getDropLowest());
+        assertEquals(0, quizzes.getSettings().getKeepBest());
+        assertFalse(quizzes.getSettings().isCapAtFullMarks());
+        assertEquals(PointsAveraging.ID, quizzes.getSettings().getAveragingId());
         assertEquals(2, quizzes.getGradedCount());
         assertEquals(3, quizzes.getAssignmentCount());
         assertEquals(QUIZZES_BY_POINTS, quizzes.getAveragePercent(), DELTA);
@@ -125,9 +134,9 @@ class CalculateGradeInteractorTest {
     @Test
     void courseWithASavedSchemeFillsInTheWeightsAndShowsTheGrade() {
         store.schemes.put("course-1", new GradingScheme("course-1", List.of(
-                new GroupWeight("quizzes", 20, 1, new EqualWeightAveraging()),
-                new GroupWeight("midterm", 30, 0, new PointsAveraging()),
-                new GroupWeight("final", 50, 0, new PointsAveraging()))));
+                new GroupWeight("quizzes", 20, new EqualWeightAveraging(), 1, 0, false),
+                new GroupWeight("midterm", 30, new PointsAveraging(), 0, 0, false),
+                new GroupWeight("final", 50, new PointsAveraging(), 0, 0, false))));
 
         interactor.loadCourse("course-1");
 
@@ -136,9 +145,9 @@ class CalculateGradeInteractorTest {
         assertEquals((80.0 * 20 + 68.0 * 30) / 50, shown.getWeightedGrade(), DELTA);
         assertEquals(50.0, shown.getGradedWeight(), DELTA);
         GroupResult quizzes = shown.getGroups().get(0);
-        assertEquals(20.0, quizzes.getWeightPercent(), DELTA);
-        assertEquals(1, quizzes.getDropLowest());
-        assertEquals(EqualWeightAveraging.ID, quizzes.getAveragingId());
+        assertEquals(20.0, quizzes.getSettings().getWeightPercent(), DELTA);
+        assertEquals(1, quizzes.getSettings().getDropLowest());
+        assertEquals(EqualWeightAveraging.ID, quizzes.getSettings().getAveragingId());
         assertEquals(80.0, quizzes.getAveragePercent(), DELTA);
     }
 
@@ -168,7 +177,7 @@ class CalculateGradeInteractorTest {
         assertEquals("Course One", shown.getCourseName());
         assertEquals((QUIZZES_BY_POINTS * 20 + 68.0 * 30) / 50, shown.getWeightedGrade(), DELTA);
         assertEquals(50.0, shown.getGradedWeight(), DELTA);
-        assertEquals(30.0, shown.getGroups().get(1).getWeightPercent(), DELTA);
+        assertEquals(30.0, shown.getGroups().get(1).getSettings().getWeightPercent(), DELTA);
 
         GradingScheme saved = store.schemes.get("course-1");
         assertEquals(3, saved.getWeights().size());
@@ -238,7 +247,7 @@ class CalculateGradeInteractorTest {
     void negativeDropsAreRefused() {
         calculate("course-1", input("quizzes", 100.0, -1, "points"));
 
-        assertEquals(CalculateGradeInteractor.DROP_RANGE_MESSAGE, presenter.failMessage);
+        assertEquals(CalculateGradeInteractor.RULE_RANGE_MESSAGE, presenter.failMessage);
     }
 
     @Test
@@ -270,6 +279,40 @@ class CalculateGradeInteractorTest {
 
         assertEquals(CalculateGradeInteractor.SAVE_FAILED_MESSAGE, presenter.failMessage);
         assertNull(presenter.success);
+    }
+
+    @Test
+    void countBestAndCapAreSavedAndUsed() {
+        calculate("course-1", withRules("quizzes", 20.0, 0, 1, false), input("midterm", 30.0, 0, "points"),
+                input("final", 50.0, 0, "points"));
+
+        assertEquals((80.0 * 20 + 68.0 * 30) / 50, presenter.success.getWeightedGrade(), DELTA);
+        assertEquals(1, presenter.success.getGroups().get(0).getSettings().getKeepBest());
+        assertEquals(1, store.schemes.get("course-1").getWeights().get(0).getKeepBest());
+
+        calculate("course-3", withRules("labs", 100.0, 0, 0, false));
+        assertEquals(150.0, presenter.success.getWeightedGrade(), DELTA);
+        calculate("course-3", withRules("labs", 100.0, 0, 0, true));
+        assertEquals(100.0, presenter.success.getWeightedGrade(), DELTA);
+        assertTrue(presenter.success.getGroups().get(0).getSettings().isCapAtFullMarks());
+    }
+
+    @Test
+    void ruleNumbersMustBeWholeAndNotNegative() {
+        calculate("course-1", withRules("quizzes", 100.0, 0, null, false));
+        assertEquals(CalculateGradeInteractor.MISSING_NUMBER_MESSAGE, presenter.failMessage);
+
+        calculate("course-1", withRules("quizzes", 100.0, 0, -2, false));
+        assertEquals(CalculateGradeInteractor.RULE_RANGE_MESSAGE, presenter.failMessage);
+        assertTrue(store.schemes.isEmpty());
+    }
+
+    @Test
+    void aGroupCantBothDropAndCountBest() {
+        calculate("course-1", withRules("quizzes", 100.0, 1, 2, false));
+
+        assertEquals(CalculateGradeInteractor.BOTH_RULES_MESSAGE, presenter.failMessage);
+        assertTrue(store.schemes.isEmpty());
     }
 
     @Test

@@ -36,8 +36,8 @@ class JsonGradingSchemeDataAccessObjectTest {
 
     private static GradingScheme scheme(String courseId, double quizzes, double finalExam) {
         return new GradingScheme(courseId, List.of(
-                new GroupWeight("quizzes", quizzes, 1, new EqualWeightAveraging()),
-                new GroupWeight("final", finalExam, 0, new PointsAveraging())));
+                new GroupWeight("quizzes", quizzes, new EqualWeightAveraging(), 1, 0, false),
+                new GroupWeight("final", finalExam, new PointsAveraging(), 0, 2, true)));
     }
 
     private void writeFile(String json) throws IOException {
@@ -62,8 +62,23 @@ class JsonGradingSchemeDataAccessObjectTest {
         assertEquals(20.0, quizzes.getWeightPercent(), DELTA);
         assertEquals(1, quizzes.getDropLowest());
         assertTrue(quizzes.getAveraging() instanceof EqualWeightAveraging);
-        assertTrue(loaded.getWeights().get(1).getAveraging() instanceof PointsAveraging);
+        GroupWeight finalExam = loaded.getWeights().get(1);
+        assertTrue(finalExam.getAveraging() instanceof PointsAveraging);
+        assertEquals(2, finalExam.getKeepBest());
+        assertTrue(finalExam.isCapAtFullMarks());
         assertTrue(Files.readString(file()).contains("\"averaging\": \"equal\""));
+        assertTrue(Files.readString(file()).contains("\"capAtFullMarks\": true"));
+    }
+
+    @Test
+    void schemesSavedBeforeCountBestAndCapStillLoad() throws IOException {
+        writeFile("{\"course-1\": {\"weights\": [{\"groupId\": \"quizzes\", \"weightPercent\": 100, "
+                + "\"dropLowest\": 1, \"averaging\": \"points\"}]}}");
+
+        GroupWeight quizzes = store().loadScheme("course-1").get().getWeights().get(0);
+        assertEquals(1, quizzes.getDropLowest());
+        assertEquals(0, quizzes.getKeepBest());
+        assertFalse(quizzes.isCapAtFullMarks());
     }
 
     @Test
@@ -113,6 +128,8 @@ class JsonGradingSchemeDataAccessObjectTest {
             "{\"course-1\": {\"weights\": [{\"weightPercent\": 50, \"dropLowest\": 0, \"averaging\": \"points\"}]}}",
             "{\"course-1\": {\"weights\": [{\"groupId\": \"a\", \"weightPercent\": 50, \"averaging\": \"median\"}]}}",
             "{\"course-1\": {\"weights\": [{\"groupId\": \"a\", \"weightPercent\": 150, \"averaging\": \"points\"}]}}",
+            "{\"course-1\": {\"weights\": [{\"groupId\": \"a\", \"weightPercent\": 50, \"averaging\": \"points\", "
+                + "\"dropLowest\": 1, \"keepBest\": 2}]}}",
         };
         for (String json : invalid) {
             writeFile(json);

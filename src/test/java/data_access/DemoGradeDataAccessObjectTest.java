@@ -1,6 +1,7 @@
 package data_access;
 
 import entity.AssignmentGroup;
+import entity.CapAtFullMarks;
 import entity.Gradebook;
 import entity.GradingScheme;
 import entity.GroupWeight;
@@ -35,16 +36,25 @@ class DemoGradeDataAccessObjectTest {
     void demo101GivesTheGradeShownInTheDemo() throws IOException {
         Gradebook gradebook = demo.getGradebook("demo-101");
         GradingScheme syllabus = new GradingScheme("demo-101", List.of(
-                new GroupWeight("demo-101-quizzes", 20, 0, new PointsAveraging()),
-                new GroupWeight("demo-101-assignments", 30, 0, new PointsAveraging()),
-                new GroupWeight("demo-101-midterm", 20, 0, new PointsAveraging()),
-                new GroupWeight("demo-101-final", 30, 0, new PointsAveraging())));
+                new GroupWeight("demo-101-quizzes", 20, new PointsAveraging(), 0, 0, false),
+                new GroupWeight("demo-101-assignments", 30, new PointsAveraging(), 0, 0, false),
+                new GroupWeight("demo-101-midterm", 20, new PointsAveraging(), 0, 0, false),
+                new GroupWeight("demo-101-final", 30, new PointsAveraging(), 0, 0, false)));
 
         assertEquals("DEMO101 · Introduction to Demo Studies", gradebook.getCourseName());
         assertEquals(4, gradebook.getGroups().size());
         assertEquals(4, gradebook.getGroups().get(0).getGradedCount());
         assertEquals(5693.0 / 70 + 1.0 / 210, syllabus.weightedGrade(gradebook).getAsDouble(), 1e-6);
         assertEquals(70.0, syllabus.gradedWeight(gradebook), DELTA);
+    }
+
+    @Test
+    void demo205LabsHaveABonusMarkToShowTheCap() throws IOException {
+        AssignmentGroup labs = demo.getGradebook("demo-205").getGroups().get(1);
+
+        assertEquals("Labs", labs.getName());
+        assertEquals(110.0, labs.average(new PointsAveraging()).getAsDouble(), DELTA);
+        assertEquals(100.0, labs.average(new CapAtFullMarks(new PointsAveraging())).getAsDouble(), DELTA);
     }
 
     @Test

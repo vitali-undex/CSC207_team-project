@@ -41,14 +41,19 @@ public class GradeCalculatorView extends JPanel implements PropertyChangeListene
 
     static final int GROUP_COLUMN = 0;
     static final int WEIGHT_COLUMN = 1;
-    static final int DROP_COLUMN = 2;
-    static final int AVERAGING_COLUMN = 3;
-    static final int AVERAGE_COLUMN = 4;
-    static final int GRADED_COLUMN = 5;
+    static final int AVERAGING_COLUMN = 2;
+    static final int DROP_COLUMN = 3;
+    static final int KEEP_BEST_COLUMN = 4;
+    static final int CAP_COLUMN = 5;
+    static final int AVERAGE_COLUMN = 6;
+    static final int GRADED_COLUMN = 7;
 
-    private static final String[] COLUMN_NAMES =
-        {"Group", "Weight (%)", "Drop lowest", "Items count", "Average", "Graded"};
-    private static final int[] COLUMN_WIDTHS = {220, 90, 90, 110, 90, 80};
+    private static final String[] COLUMN_NAMES = {"Group", "Weight (%)", "Items count",
+        "Drop lowest", "Count best", "Cap at 100%", "Average", "Graded"};
+    private static final int[] COLUMN_WIDTHS = {170, 80, 95, 85, 85, 85, 80, 70};
+    private static final boolean[] EDITABLE = {false, true, true, true, true, true, false, false};
+    private static final Class<?>[] COLUMN_CLASSES = {Object.class, Object.class, Object.class,
+        Object.class, Object.class, Boolean.class, Object.class, Object.class};
     private static final Color MUTED = new Color(0x495E76);
     private static final Color ERROR = new Color(0xB00020);
     private static final float TITLE_SIZE = 20f;
@@ -65,7 +70,12 @@ public class GradeCalculatorView extends JPanel implements PropertyChangeListene
     private final DefaultTableModel tableModel = new DefaultTableModel(COLUMN_NAMES, 0) {
         @Override
         public boolean isCellEditable(int row, int column) {
-            return column == WEIGHT_COLUMN || column == DROP_COLUMN || column == AVERAGING_COLUMN;
+            return EDITABLE[column];
+        }
+
+        @Override
+        public Class<?> getColumnClass(int column) {
+            return COLUMN_CLASSES[column];
         }
     };
     private final JTable table = new JTable(tableModel);
@@ -137,10 +147,12 @@ public class GradeCalculatorView extends JPanel implements PropertyChangeListene
         courseRow.add(Box.createHorizontalStrut(GAP));
         courseRow.add(courseBox);
 
-        final JLabel hint = new JLabel("<html>Copy each group's weight from the syllabus. "
-                + "Drops remove the lowest marks first.<br>Items count <b>by points</b> "
-                + "(bigger assignments count more) or <b>equally</b> "
-                + "(each one counts the same).</html>");
+        final JLabel hint = new JLabel("<html>Copy each group's weight and rules from the "
+                + "syllabus. Items count <b>by points</b> (bigger ones count more) "
+                + "or <b>equally</b>.<br><b>Drop lowest</b> removes your lowest marks as soon as "
+                + "they're graded. <b>Count best</b> keeps your best N,<br>so nothing is left out "
+                + "until more than N are graded. <b>Cap at 100%</b> stops bonus marks taking "
+                + "a group over 100%.</html>");
         hint.setForeground(MUTED);
 
         return stack(title, courseRow, hint);
@@ -195,7 +207,8 @@ public class GradeCalculatorView extends JPanel implements PropertyChangeListene
         for (int row = 0; row < tableModel.getRowCount(); row++) {
             final Choice averaging = (Choice) tableModel.getValueAt(row, AVERAGING_COLUMN);
             entries.add(new WeightEntry(rowGroupIds.get(row), cellText(row, WEIGHT_COLUMN),
-                    cellText(row, DROP_COLUMN), averaging.getId()));
+                    averaging.getId(), cellText(row, DROP_COLUMN), cellText(row, KEEP_BEST_COLUMN),
+                    Boolean.TRUE.equals(tableModel.getValueAt(row, CAP_COLUMN))));
         }
         controller.calculate(viewModel.getState().getCourseId(), entries);
     }
@@ -229,8 +242,9 @@ public class GradeCalculatorView extends JPanel implements PropertyChangeListene
         rowGroupIds.clear();
         for (GroupRowState row : state.getRows()) {
             rowGroupIds.add(row.getGroupId());
-            tableModel.addRow(new Object[] {row.getName(), row.getWeightText(), row.getDropText(),
-                row.getAveraging(), row.getAverageText(), row.getGradedText()});
+            tableModel.addRow(new Object[] {row.getName(), row.getWeightText(), row.getAveraging(),
+                row.getDropText(), row.getKeepBestText(), row.isCapAtFullMarks(),
+                row.getAverageText(), row.getGradedText()});
         }
         calculateButton.setEnabled(!state.getRows().isEmpty());
     }

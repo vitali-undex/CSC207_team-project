@@ -18,8 +18,8 @@ import java.nio.file.Path;
  */
 public final class GradeCalculatorMain {
 
-    private static final int WIDTH = 900;
-    private static final int HEIGHT = 600;
+    private static final int WIDTH = 960;
+    private static final int HEIGHT = 640;
     private static final int PADDING = 20;
 
     private GradeCalculatorMain() {

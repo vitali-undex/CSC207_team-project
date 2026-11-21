@@ -3,8 +3,10 @@ package entity;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GroupWeightTest {
 
@@ -12,35 +14,61 @@ class GroupWeightTest {
 
     @Test
     void holdsWhatTheSyllabusSays() {
-        GroupWeight weight = new GroupWeight("quizzes", 20, 1, POINTS);
+        GroupWeight weight = new GroupWeight("quizzes", 20, POINTS, 1, 0, true);
 
         assertEquals("quizzes", weight.getGroupId());
         assertEquals(20.0, weight.getWeightPercent());
-        assertEquals(1, weight.getDropLowest());
         assertSame(POINTS, weight.getAveraging());
+        assertEquals(1, weight.getDropLowest());
+        assertEquals(0, weight.getKeepBest());
+        assertTrue(weight.isCapAtFullMarks());
     }
 
     @Test
     void acceptsWeightsFromZeroToOneHundred() {
-        assertEquals(0.0, new GroupWeight("bonus", 0, 0, POINTS).getWeightPercent());
-        assertEquals(100.0, new GroupWeight("final", 100, 0, POINTS).getWeightPercent());
+        assertEquals(0.0, new GroupWeight("bonus", 0, POINTS, 0, 0, false).getWeightPercent());
+        assertEquals(100.0, new GroupWeight("final", 100, POINTS, 0, 0, false).getWeightPercent());
     }
 
     @Test
     void rejectsWeightsOutsideZeroToOneHundred() {
-        assertThrows(IllegalArgumentException.class, () -> new GroupWeight("quizzes", -0.5, 0, POINTS));
-        assertThrows(IllegalArgumentException.class, () -> new GroupWeight("quizzes", 100.5, 0, POINTS));
-        assertThrows(IllegalArgumentException.class, () -> new GroupWeight("quizzes", Double.NaN, 0, POINTS));
+        assertThrows(IllegalArgumentException.class, () -> new GroupWeight("q", -0.5, POINTS, 0, 0, false));
+        assertThrows(IllegalArgumentException.class, () -> new GroupWeight("q", 100.5, POINTS, 0, 0, false));
+        assertThrows(IllegalArgumentException.class,
+                () -> new GroupWeight("q", Double.NaN, POINTS, 0, 0, false));
     }
 
     @Test
-    void rejectsNegativeDrops() {
-        assertThrows(IllegalArgumentException.class, () -> new GroupWeight("quizzes", 20, -1, POINTS));
+    void rejectsNegativeRuleNumbers() {
+        assertThrows(IllegalArgumentException.class, () -> new GroupWeight("q", 20, POINTS, -1, 0, false));
+        assertThrows(IllegalArgumentException.class, () -> new GroupWeight("q", 20, POINTS, 0, -1, false));
+    }
+
+    @Test
+    void cantBothDropTheLowestAndCountTheBest() {
+        assertThrows(IllegalArgumentException.class, () -> new GroupWeight("q", 20, POINTS, 1, 8, false));
     }
 
     @Test
     void groupIdAndAveragingAreRequired() {
-        assertThrows(NullPointerException.class, () -> new GroupWeight(null, 20, 0, POINTS));
-        assertThrows(NullPointerException.class, () -> new GroupWeight("quizzes", 20, 0, null));
+        assertThrows(NullPointerException.class, () -> new GroupWeight(null, 20, POINTS, 0, 0, false));
+        assertThrows(NullPointerException.class, () -> new GroupWeight("q", 20, null, 0, 0, false));
+    }
+
+    @Test
+    void withoutRulesTheRuleIsJustTheAveraging() {
+        assertSame(POINTS, new GroupWeight("q", 20, POINTS, 0, 0, false).getRule());
+    }
+
+    @Test
+    void wrapsTheAveragingInEachOfItsRules() {
+        AveragingStrategy dropAndCap = new GroupWeight("q", 20, POINTS, 1, 0, true).getRule();
+        AveragingStrategy countBest = new GroupWeight("q", 20, POINTS, 0, 3, false).getRule();
+
+        assertTrue(dropAndCap instanceof CapAtFullMarks);
+        assertEquals("By points, drop lowest 1, capped at 100%", dropAndCap.getName());
+        assertTrue(countBest instanceof KeepBest);
+        assertFalse(countBest instanceof CapAtFullMarks);
+        assertEquals("By points, count best 3", countBest.getName());
     }
 }

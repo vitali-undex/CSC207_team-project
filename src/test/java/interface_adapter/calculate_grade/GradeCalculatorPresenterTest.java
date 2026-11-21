@@ -6,6 +6,7 @@ import use_case.calculate_grade.AveragingOption;
 import use_case.calculate_grade.CalculateGradeOutputData;
 import use_case.calculate_grade.CourseOption;
 import use_case.calculate_grade.GroupResult;
+import use_case.calculate_grade.GroupSettings;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,8 +36,10 @@ class GradeCalculatorPresenterTest {
 
     private static CalculateGradeOutputData breakdown(boolean schemeSaved, Double grade, double gradedWeight) {
         return new CalculateGradeOutputData("course-1", "Course One", List.of(
-                new GroupResult("quizzes", "Quizzes", 20, 1, "equal", 2, 3, 200.0 / 3),
-                new GroupResult("final", "Final exam", 33.333, 0, "points", 0, 1, null)),
+                new GroupResult("quizzes", "Quizzes", new GroupSettings(20, "equal", 1, 0, false), 2, 3,
+                        200.0 / 3),
+                new GroupResult("final", "Final exam", new GroupSettings(33.333, "points", 0, 8, true), 0,
+                        1, null)),
                 OPTIONS, schemeSaved, grade, gradedWeight);
     }
 
@@ -72,12 +75,16 @@ class GradeCalculatorPresenterTest {
         assertEquals("Quizzes", quizzes.getName());
         assertEquals("20", quizzes.getWeightText());
         assertEquals("1", quizzes.getDropText());
+        assertEquals("", quizzes.getKeepBestText());
+        assertEquals(false, quizzes.isCapAtFullMarks());
         assertEquals("Equally", quizzes.getAveraging().getLabel());
         assertEquals("66.67%", quizzes.getAverageText());
         assertEquals("2 of 3", quizzes.getGradedText());
 
         GroupRowState finalExam = state.getRows().get(1);
         assertEquals("33.33", finalExam.getWeightText());
+        assertEquals("8", finalExam.getKeepBestText());
+        assertEquals(true, finalExam.isCapAtFullMarks());
         assertEquals(GradeCalculatorPresenter.NO_AVERAGE, finalExam.getAverageText());
         assertEquals(List.of(GradeCalculatorViewModel.STATE_PROPERTY), events);
     }
@@ -142,7 +149,8 @@ class GradeCalculatorPresenterTest {
     @Test
     void unknownAveragingRuleIsShownByItsId() {
         presenter.prepareCourseView(new CalculateGradeOutputData("course-1", "Course One",
-                List.of(new GroupResult("labs", "Labs", 10, 0, "median", 1, 1, 50.0)), OPTIONS, false, null, 0));
+                List.of(new GroupResult("labs", "Labs", new GroupSettings(10, "median", 0, 0, false), 1, 1,
+                        50.0)), OPTIONS, false, null, 0));
 
         assertEquals("median", viewModel.getState().getRows().get(0).getAveraging().getLabel());
     }

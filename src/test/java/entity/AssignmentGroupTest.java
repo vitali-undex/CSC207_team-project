@@ -36,33 +36,17 @@ class AssignmentGroupTest {
 
     @Test
     void averagesByPointsSkippingUngradedWork() {
-        assertEquals(29.0 / 35 * 100, quizzes().average(0, POINTS).getAsDouble(), DELTA);
+        assertEquals(29.0 / 35 * 100, quizzes().average(POINTS).getAsDouble(), DELTA);
     }
 
     @Test
     void averagesEquallyWhenTheSyllabusSaysSo() {
-        assertEquals((80.0 + 60.0 + 90.0) / 3, quizzes().average(0, EQUAL).getAsDouble(), DELTA);
+        assertEquals((80.0 + 60.0 + 90.0) / 3, quizzes().average(EQUAL).getAsDouble(), DELTA);
     }
 
     @Test
-    void dropsTheLowestPercentageFirst() {
-        assertEquals(26.0 / 30 * 100, quizzes().average(1, POINTS).getAsDouble(), DELTA);
-        assertEquals(85.0, quizzes().average(1, EQUAL).getAsDouble(), DELTA);
-    }
-
-    @Test
-    void alwaysKeepsAtLeastOneMark() {
-        assertEquals(90.0, quizzes().average(10, POINTS).getAsDouble(), DELTA);
-    }
-
-    @Test
-    void dropsTheBiggerOfTwoEqualPercentages() {
-        AssignmentGroup group = new AssignmentGroup("labs", "Labs", List.of(
-                new GradedAssignment("Lab 1", 5.0, 10),
-                new GradedAssignment("Lab 2", 10.0, 20),
-                new GradedAssignment("Lab 3", 18.0, 20)));
-
-        assertEquals(23.0 / 30 * 100, group.average(1, POINTS).getAsDouble(), DELTA);
+    void givesItsRuleOnlyTheGradedMarks() {
+        assertEquals(26.0 / 30 * 100, quizzes().average(new DropLowest(POINTS, 1)).getAsDouble(), DELTA);
     }
 
     @Test
@@ -71,13 +55,12 @@ class AssignmentGroupTest {
                 List.of(new GradedAssignment("Final exam", null, 100)));
 
         assertEquals(0, group.getGradedCount());
-        assertTrue(group.average(0, POINTS).isEmpty());
+        assertTrue(group.average(POINTS).isEmpty());
     }
 
     @Test
-    void rejectsNegativeDropsAndMissingRules() {
-        assertThrows(IllegalArgumentException.class, () -> quizzes().average(-1, POINTS));
-        assertThrows(NullPointerException.class, () -> quizzes().average(0, null));
+    void needsARule() {
+        assertThrows(NullPointerException.class, () -> quizzes().average(null));
     }
 
     @Test

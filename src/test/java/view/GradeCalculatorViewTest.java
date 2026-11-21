@@ -24,9 +24,11 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static view.GradeCalculatorView.AVERAGE_COLUMN;
 import static view.GradeCalculatorView.AVERAGING_COLUMN;
+import static view.GradeCalculatorView.CAP_COLUMN;
 import static view.GradeCalculatorView.DROP_COLUMN;
 import static view.GradeCalculatorView.GRADED_COLUMN;
 import static view.GradeCalculatorView.GROUP_COLUMN;
+import static view.GradeCalculatorView.KEEP_BEST_COLUMN;
 import static view.GradeCalculatorView.WEIGHT_COLUMN;
 
 /** Drives the real screen with the demo data, the way a student would. */
@@ -77,11 +79,16 @@ class GradeCalculatorViewTest {
             assertEquals("86.67%", table.getValueAt(0, AVERAGE_COLUMN));
             assertEquals("4 of 5", table.getValueAt(0, GRADED_COLUMN));
             assertEquals(GradeCalculatorPresenter.NO_AVERAGE, table.getValueAt(3, AVERAGE_COLUMN));
-            assertTrue(table.isCellEditable(0, WEIGHT_COLUMN));
-            assertTrue(table.isCellEditable(0, DROP_COLUMN));
-            assertTrue(table.isCellEditable(0, AVERAGING_COLUMN));
+            assertEquals("", table.getValueAt(0, KEEP_BEST_COLUMN));
+            assertEquals(false, table.getValueAt(0, CAP_COLUMN));
+            assertEquals(Boolean.class, table.getColumnClass(CAP_COLUMN));
+            for (int column : new int[] {WEIGHT_COLUMN, AVERAGING_COLUMN, DROP_COLUMN, KEEP_BEST_COLUMN,
+                CAP_COLUMN}) {
+                assertTrue(table.isCellEditable(0, column), "column " + column);
+            }
             assertFalse(table.isCellEditable(0, GROUP_COLUMN));
             assertFalse(table.isCellEditable(0, AVERAGE_COLUMN));
+            assertFalse(table.isCellEditable(0, GRADED_COLUMN));
             assertTrue(view.getCalculateButton().isEnabled());
             assertEquals(GradeCalculatorPresenter.ENTER_WEIGHTS_MESSAGE, view.getDetailLabel().getText());
         });
@@ -115,6 +122,49 @@ class GradeCalculatorViewTest {
             assertEquals("Current grade: 82.29%", reopened.getGradeLabel().getText());
             assertEquals("Based on 70% of the course graded so far. Using the weights you saved.",
                     reopened.getDetailLabel().getText());
+        });
+    }
+
+    @Test
+    void countBestLeavesNothingOutUntilMoreAreGradedButDropLowestDoes() throws Throwable {
+        onSwingThread(() -> {
+            GradeCalculatorView view = openDemo();
+            typeWeights(view, "20", "30", "20", "30");
+            JTable table = view.getTable();
+
+            table.setValueAt("4", 0, KEEP_BEST_COLUMN);
+            view.getCalculateButton().doClick();
+            assertEquals("Current grade: 81.33%", view.getGradeLabel().getText());
+            assertEquals("4", table.getValueAt(0, KEEP_BEST_COLUMN));
+
+            table.setValueAt("1", 0, DROP_COLUMN);
+            view.getCalculateButton().doClick();
+            assertEquals(CalculateGradeInteractor.BOTH_RULES_MESSAGE, view.getErrorLabel().getText());
+
+            table.setValueAt("", 0, KEEP_BEST_COLUMN);
+            view.getCalculateButton().doClick();
+            assertEquals("Current grade: 82.29%", view.getGradeLabel().getText());
+        });
+    }
+
+    @Test
+    void capStopsTheBonusLabTakingLabsOverOneHundred() throws Throwable {
+        onSwingThread(() -> {
+            GradeCalculatorView view = openDemo();
+            view.getCourseBox().setSelectedIndex(1);
+            JTable table = view.getTable();
+            assertEquals("Labs", table.getValueAt(1, GROUP_COLUMN));
+            assertEquals("110%", table.getValueAt(1, AVERAGE_COLUMN));
+
+            typeWeights(view, "25", "10", "15", "15", "35");
+            view.getCalculateButton().doClick();
+            assertEquals("Current grade: 86.46%", view.getGradeLabel().getText());
+
+            table.setValueAt(true, 1, CAP_COLUMN);
+            view.getCalculateButton().doClick();
+            assertEquals("100%", table.getValueAt(1, AVERAGE_COLUMN));
+            assertEquals(true, table.getValueAt(1, CAP_COLUMN));
+            assertEquals("Current grade: 84.92%", view.getGradeLabel().getText());
         });
     }
 

@@ -36,8 +36,8 @@ class GradingSchemeTest {
 
     @Test
     void addsUpItsWeights() {
-        GradingScheme scheme = scheme(new GroupWeight("quizzes", 20, 0, POINTS),
-                new GroupWeight("midterm", 30, 0, POINTS), new GroupWeight("final", 50, 0, POINTS));
+        GradingScheme scheme = scheme(new GroupWeight("quizzes", 20, POINTS, 0, 0, false),
+                new GroupWeight("midterm", 30, POINTS, 0, 0, false), new GroupWeight("final", 50, POINTS, 0, 0, false));
 
         assertEquals("course-1", scheme.getCourseId());
         assertEquals(3, scheme.getWeights().size());
@@ -47,22 +47,22 @@ class GradingSchemeTest {
 
     @Test
     void acceptsRoundedWeightsThatAddUpToOneHundred() {
-        assertTrue(scheme(new GroupWeight("quizzes", 33.33, 0, POINTS), new GroupWeight("midterm", 33.33, 0, POINTS),
-                new GroupWeight("final", 33.34, 0, POINTS)).isComplete());
+        assertTrue(scheme(new GroupWeight("quizzes", 33.33, POINTS, 0, 0, false), new GroupWeight("midterm", 33.33, POINTS, 0, 0, false),
+                new GroupWeight("final", 33.34, POINTS, 0, 0, false)).isComplete());
     }
 
     @Test
     void isIncompleteUnlessTheWeightsAddUpToOneHundred() {
-        assertFalse(scheme(new GroupWeight("quizzes", 20, 0, POINTS), new GroupWeight("final", 70, 0, POINTS))
+        assertFalse(scheme(new GroupWeight("quizzes", 20, POINTS, 0, 0, false), new GroupWeight("final", 70, POINTS, 0, 0, false))
                 .isComplete());
-        assertFalse(scheme(new GroupWeight("quizzes", 40, 0, POINTS), new GroupWeight("final", 70, 0, POINTS))
+        assertFalse(scheme(new GroupWeight("quizzes", 40, POINTS, 0, 0, false), new GroupWeight("final", 70, POINTS, 0, 0, false))
                 .isComplete());
         assertFalse(scheme().isComplete());
     }
 
     @Test
     void findsTheWeightForAGroup() {
-        GradingScheme scheme = scheme(new GroupWeight("midterm", 30, 0, POINTS));
+        GradingScheme scheme = scheme(new GroupWeight("midterm", 30, POINTS, 0, 0, false));
 
         assertEquals(30.0, scheme.weightFor("midterm").get().getWeightPercent(), DELTA);
         assertTrue(scheme.weightFor("labs").isEmpty());
@@ -71,7 +71,7 @@ class GradingSchemeTest {
     @Test
     void weightsCantBeChangedFromOutside() {
         List<GroupWeight> weights = new ArrayList<>();
-        weights.add(new GroupWeight("midterm", 30, 0, POINTS));
+        weights.add(new GroupWeight("midterm", 30, POINTS, 0, 0, false));
         GradingScheme scheme = new GradingScheme("course-1", weights);
 
         weights.clear();
@@ -83,8 +83,8 @@ class GradingSchemeTest {
 
     @Test
     void gradeCountsOnlyTheWorkGradedSoFar() {
-        GradingScheme scheme = scheme(new GroupWeight("quizzes", 20, 0, POINTS),
-                new GroupWeight("midterm", 30, 0, POINTS), new GroupWeight("final", 50, 0, POINTS));
+        GradingScheme scheme = scheme(new GroupWeight("quizzes", 20, POINTS, 0, 0, false),
+                new GroupWeight("midterm", 30, POINTS, 0, 0, false), new GroupWeight("final", 50, POINTS, 0, 0, false));
         double quizzes = 11.0 / 15 * 100;
 
         assertEquals((quizzes * 20 + 68.0 * 30) / 50, scheme.weightedGrade(gradebook()).getAsDouble(), DELTA);
@@ -93,16 +93,16 @@ class GradingSchemeTest {
 
     @Test
     void gradeUsesEachGroupsDropsAndAveraging() {
-        GradingScheme scheme = scheme(new GroupWeight("quizzes", 20, 1, EQUAL),
-                new GroupWeight("midterm", 30, 0, POINTS), new GroupWeight("final", 50, 0, POINTS));
+        GradingScheme scheme = scheme(new GroupWeight("quizzes", 20, EQUAL, 1, 0, false),
+                new GroupWeight("midterm", 30, POINTS, 0, 0, false), new GroupWeight("final", 50, POINTS, 0, 0, false));
 
         assertEquals((80.0 * 20 + 68.0 * 30) / 50, scheme.weightedGrade(gradebook()).getAsDouble(), DELTA);
     }
 
     @Test
     void groupsWithNoWeightDontCount() {
-        GradingScheme scheme = scheme(new GroupWeight("quizzes", 0, 0, POINTS),
-                new GroupWeight("midterm", 100, 0, POINTS));
+        GradingScheme scheme = scheme(new GroupWeight("quizzes", 0, POINTS, 0, 0, false),
+                new GroupWeight("midterm", 100, POINTS, 0, 0, false));
 
         assertEquals(68.0, scheme.weightedGrade(gradebook()).getAsDouble(), DELTA);
         assertEquals(100.0, scheme.gradedWeight(gradebook()), DELTA);
@@ -110,7 +110,7 @@ class GradingSchemeTest {
 
     @Test
     void hasNoGradeUntilWeightedWorkIsGraded() {
-        GradingScheme scheme = scheme(new GroupWeight("final", 100, 0, POINTS));
+        GradingScheme scheme = scheme(new GroupWeight("final", 100, POINTS, 0, 0, false));
 
         assertTrue(scheme.weightedGrade(gradebook()).isEmpty());
         assertEquals(0.0, scheme.gradedWeight(gradebook()), DELTA);

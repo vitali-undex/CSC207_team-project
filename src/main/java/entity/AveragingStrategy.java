@@ -6,7 +6,9 @@ import java.util.List;
  * One way of combining the marks in an assignment group into a single average.
  * Syllabi differ here: some add up the points, others count each assignment
  * equally whatever it is out of. Each way is its own class (the Strategy
- * pattern), so a new rule is a new class and nothing that uses it changes.
+ * pattern), so a new way is a new class and nothing that uses it changes.
+ * Syllabus rules such as "drop the lowest mark" wrap a strategy without
+ * changing it: see {@link AveragingRule}.
  */
 public interface AveragingStrategy {
 

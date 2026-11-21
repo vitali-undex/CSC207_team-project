@@ -33,8 +33,8 @@ import java.util.TreeMap;
  * {
  *   "demo-101": {
  *     "weights": [
- *       { "groupId": "demo-101-quizzes", "weightPercent": 20.0, "dropLowest": 1,
- *         "averaging": "equal" }
+ *       { "groupId": "demo-101-quizzes", "weightPercent": 20.0, "averaging": "equal",
+ *         "dropLowest": 1, "keepBest": 0, "capAtFullMarks": false }
  *     ]
  *   }
  * }
@@ -115,8 +115,8 @@ public final class JsonGradingSchemeDataAccessObject implements GradingSchemeDat
                 throw invalid(courseId, null);
             }
             try {
-                weights.add(new GroupWeight(saved.groupId, saved.weightPercent, saved.dropLowest,
-                        averaging.get()));
+                weights.add(new GroupWeight(saved.groupId, saved.weightPercent, averaging.get(),
+                        saved.dropLowest, saved.keepBest, saved.capAtFullMarks));
             }
             catch (IllegalArgumentException exception) {
                 throw invalid(courseId, exception);
@@ -136,8 +136,10 @@ public final class JsonGradingSchemeDataAccessObject implements GradingSchemeDat
             final StoredWeight saved = new StoredWeight();
             saved.groupId = weight.getGroupId();
             saved.weightPercent = weight.getWeightPercent();
-            saved.dropLowest = weight.getDropLowest();
             saved.averaging = weight.getAveraging().getId();
+            saved.dropLowest = weight.getDropLowest();
+            saved.keepBest = weight.getKeepBest();
+            saved.capAtFullMarks = weight.isCapAtFullMarks();
             stored.weights.add(saved);
         }
         return stored;
@@ -148,11 +150,13 @@ public final class JsonGradingSchemeDataAccessObject implements GradingSchemeDat
         private List<StoredWeight> weights;
     }
 
-    /** One group's weight as it is written in the file. */
+    /** One group's weight and rules as they are written in the file. */
     private static final class StoredWeight {
         private String groupId;
         private double weightPercent;
-        private int dropLowest;
         private String averaging;
+        private int dropLowest;
+        private int keepBest;
+        private boolean capAtFullMarks;
     }
 }

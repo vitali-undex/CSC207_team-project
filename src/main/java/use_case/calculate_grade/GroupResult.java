@@ -7,9 +7,7 @@ public class GroupResult {
 
     private final String groupId;
     private final String name;
-    private final double weightPercent;
-    private final int dropLowest;
-    private final String averagingId;
+    private final GroupSettings settings;
     private final int gradedCount;
     private final int assignmentCount;
     private final Double averagePercent;
@@ -19,21 +17,16 @@ public class GroupResult {
      *
      * @param groupId         the group's id
      * @param name            the group's name
-     * @param weightPercent   the group's weight in the scheme, 0 if it has none yet
-     * @param dropLowest      how many low marks the group drops
-     * @param averagingId     the id of the rule that averages the group
+     * @param settings        the group's weight and rules
      * @param gradedCount     how many of its assignments are graded
      * @param assignmentCount how many assignments it has
-     * @param averagePercent  the group's average after drops, or null if nothing is graded
+     * @param averagePercent  the group's average under its rules, or null if nothing is graded
      */
-    public GroupResult(String groupId, String name, double weightPercent, int dropLowest,
-                       String averagingId, int gradedCount, int assignmentCount,
-                       Double averagePercent) {
+    public GroupResult(String groupId, String name, GroupSettings settings, int gradedCount,
+                       int assignmentCount, Double averagePercent) {
         this.groupId = groupId;
         this.name = name;
-        this.weightPercent = weightPercent;
-        this.dropLowest = dropLowest;
-        this.averagingId = averagingId;
+        this.settings = settings;
         this.gradedCount = gradedCount;
         this.assignmentCount = assignmentCount;
         this.averagePercent = averagePercent;
@@ -47,16 +40,8 @@ public class GroupResult {
         return name;
     }
 
-    public double getWeightPercent() {
-        return weightPercent;
-    }
-
-    public int getDropLowest() {
-        return dropLowest;
-    }
-
-    public String getAveragingId() {
-        return averagingId;
+    public GroupSettings getSettings() {
+        return settings;
     }
 
     public int getGradedCount() {
@@ -70,7 +55,7 @@ public class GroupResult {
     /**
      * Returns the group's average.
      *
-     * @return the average after drops as a percentage, or null if nothing is graded
+     * @return the average under the group's rules as a percentage, or null if nothing is graded
      */
     public Double getAveragePercent() {
         return averagePercent;

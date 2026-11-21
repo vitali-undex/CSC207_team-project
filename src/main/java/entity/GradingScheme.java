@@ -7,8 +7,7 @@ import java.util.OptionalDouble;
 
 /**
  * A course's grading scheme as the student copied it from the syllabus: for
- * each assignment group, its weight, how many low marks it drops, and how its
- * marks are averaged.
+ * each assignment group, its weight, how its marks are averaged, and its rules.
  */
 public class GradingScheme {
 
@@ -97,8 +96,7 @@ public class GradingScheme {
         for (AssignmentGroup group : gradebook.getGroups()) {
             final Optional<GroupWeight> weight = weightFor(group.getId());
             if (weight.isPresent() && weight.get().getWeightPercent() > 0) {
-                final OptionalDouble average =
-                        group.average(weight.get().getDropLowest(), weight.get().getAveraging());
+                final OptionalDouble average = group.average(weight.get().getRule());
                 if (average.isPresent()) {
                     weightedSum += average.getAsDouble() * weight.get().getWeightPercent();
                     countedWeight += weight.get().getWeightPercent();

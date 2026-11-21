@@ -50,7 +50,8 @@ public class GradeCalculatorController {
         final List<GroupWeightInput> weights = new ArrayList<>();
         for (WeightEntry entry : entries) {
             weights.add(new GroupWeightInput(entry.getGroupId(), parseWeight(entry.getWeightText()),
-                    parseDrop(entry.getDropText()), entry.getAveragingId()));
+                    entry.getAveragingId(), parseCount(entry.getDropText()),
+                    parseCount(entry.getKeepBestText()), entry.isCapAtFullMarks()));
         }
         interactor.execute(new CalculateGradeInputData(courseId, weights));
     }
@@ -83,12 +84,13 @@ public class GradeCalculatorController {
     }
 
     /**
-     * Reads a drop count. A blank drop count means no drops.
+     * Reads a drop-lowest or count-best number. Blank means 0: drop none, or
+     * count all.
      *
      * @param text what the student typed
-     * @return the drop count, or null if it isn't a whole number
+     * @return the number, or null if it isn't a whole number
      */
-    static Integer parseDrop(String text) {
+    static Integer parseCount(String text) {
         if (text == null || text.isBlank()) {
             return 0;
         }

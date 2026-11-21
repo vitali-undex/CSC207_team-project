@@ -41,8 +41,9 @@ public final class DemoGradeDataAccessObject implements GradeSourceDataAccessInt
                         graded("Problem set 3", 7, 10), graded("Problem set 4", 8, 10),
                         graded("Problem set 5", 9, 10), notGraded("Problem set 6", 10)),
                 group("demo-205-labs", "Labs",
-                        graded("Lab 1", 2, 2), graded("Lab 2", 2, 2), graded("Lab 3", 1, 2),
-                        graded("Lab 4", 2, 2), graded("Lab 5", 2, 2), notGraded("Lab 6", 2)),
+                        graded("Lab 1", 2, 2), graded("Lab 2", 2, 2), graded("Lab 3", 2, 2),
+                        graded("Lab 4", 2, 2), graded("Lab 5 (bonus question)", 3, 2),
+                        notGraded("Lab 6", 2)),
                 group("demo-205-test-1", "Term test 1", graded("Term test 1", 41, 50)),
                 group("demo-205-test-2", "Term test 2", graded("Term test 2", 38, 50)),
                 group("demo-205-final", "Final exam", notGraded("Final exam", 100)))));

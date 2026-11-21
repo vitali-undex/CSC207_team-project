@@ -24,9 +24,10 @@ import java.util.OptionalDouble;
  *   <li>Picking a course shows its assignment groups. If a grading scheme was
  *       saved for it, the weights are filled in and the grade is shown
  *       straight away (steps 1 and 2).</li>
- *   <li>A weight that isn't a number from 0 to 100, a drop count that isn't a
- *       whole number of 0 or more, or an unknown averaging rule is refused,
- *       and nothing is saved.</li>
+ *   <li>A weight that isn't a number from 0 to 100, a drop or count-best
+ *       number that isn't a whole number of 0 or more, a group that both drops
+ *       its lowest marks and counts only its best, or an unknown averaging
+ *       rule is refused, and nothing is saved (extension 3b).</li>
  *   <li>Weights that don't add up to 100% are refused with the difference
  *       (extension 3a), and nothing is saved.</li>
  *   <li>Otherwise the scheme is saved and the current grade is shown, or
@@ -47,15 +48,19 @@ public class CalculateGradeInteractor implements CalculateGradeInputBoundary {
     public static final String SAVE_FAILED_MESSAGE =
             "Couldn't save the grading scheme, so the grade wasn't updated. Please try again.";
 
-    /** Shown when a weight or drop count isn't a number. */
+    /** Shown when a weight, drop or count-best number isn't a number. */
     public static final String MISSING_NUMBER_MESSAGE =
-            "Enter a number for every weight, and a whole number for every drop count.";
+            "Enter a number for every weight, and whole numbers for drop lowest and count best.";
 
     /** Shown when a weight is below 0 or above 100. */
     public static final String WEIGHT_RANGE_MESSAGE = "Each weight must be between 0 and 100.";
 
-    /** Shown when a drop count is negative. */
-    public static final String DROP_RANGE_MESSAGE = "Drop counts can't be negative.";
+    /** Shown when a drop or count-best number is negative. */
+    public static final String RULE_RANGE_MESSAGE = "Drop lowest and count best can't be negative.";
+
+    /** Shown when a group both drops its lowest marks and counts only its best. */
+    public static final String BOTH_RULES_MESSAGE =
+            "A group can drop its lowest marks or count its best ones, but not both.";
 
     /** Shown when a group has no known averaging rule. */
     public static final String AVERAGING_MESSAGE =
@@ -126,7 +131,8 @@ public class CalculateGradeInteractor implements CalculateGradeInputBoundary {
                 return;
             }
             weights.add(new GroupWeight(input.getGroupId(), input.getWeightPercent(),
-                    input.getDropLowest(), AveragingStrategies.byId(input.getAveragingId()).get()));
+                    AveragingStrategies.byId(input.getAveragingId()).get(), input.getDropLowest(),
+                    input.getKeepBest(), input.isCapAtFullMarks()));
         }
 
         final GradingScheme scheme = new GradingScheme(inputData.getCourseId(), weights);
@@ -159,14 +165,19 @@ public class CalculateGradeInteractor implements CalculateGradeInputBoundary {
     private static Optional<String> problemWith(GroupWeightInput input) {
         final Double weight = input.getWeightPercent();
         final Optional<String> problem;
-        if (weight == null || input.getDropLowest() == null) {
+        final Integer drop = input.getDropLowest();
+        final Integer best = input.getKeepBest();
+        if (weight == null || drop == null || best == null) {
             problem = Optional.of(MISSING_NUMBER_MESSAGE);
         }
         else if (!(weight >= 0 && weight <= MAX_WEIGHT)) {
             problem = Optional.of(WEIGHT_RANGE_MESSAGE);
         }
-        else if (input.getDropLowest() < 0) {
-            problem = Optional.of(DROP_RANGE_MESSAGE);
+        else if (drop < 0 || best < 0) {
+            problem = Optional.of(RULE_RANGE_MESSAGE);
+        }
+        else if (drop > 0 && best > 0) {
+            problem = Optional.of(BOTH_RULES_MESSAGE);
         }
         else if (AveragingStrategies.byId(input.getAveragingId()).isEmpty()) {
             problem = Optional.of(AVERAGING_MESSAGE);
@@ -186,13 +197,13 @@ public class CalculateGradeInteractor implements CalculateGradeInputBoundary {
         final List<GroupResult> rows = new ArrayList<>();
         for (AssignmentGroup group : gradebook.getGroups()) {
             final Optional<GroupWeight> weight = scheme.weightFor(group.getId());
-            final double weightPercent = weight.map(GroupWeight::getWeightPercent).orElse(0.0);
-            final int dropLowest = weight.map(GroupWeight::getDropLowest).orElse(0);
-            final AveragingStrategy averaging = weight.map(GroupWeight::getAveraging)
-                    .orElse(AveragingStrategies.defaultStrategy());
-            final OptionalDouble average = group.average(dropLowest, averaging);
-            rows.add(new GroupResult(group.getId(), group.getName(), weightPercent, dropLowest,
-                    averaging.getId(), group.getGradedCount(), group.getAssignments().size(),
+            final GroupSettings settings = weight.map(CalculateGradeInteractor::settingsOf)
+                    .orElse(new GroupSettings(0, AveragingStrategies.defaultStrategy().getId(),
+                            0, 0, false));
+            final OptionalDouble average = group.average(
+                    weight.map(GroupWeight::getRule).orElse(AveragingStrategies.defaultStrategy()));
+            rows.add(new GroupResult(group.getId(), group.getName(), settings,
+                    group.getGradedCount(), group.getAssignments().size(),
                     average.isPresent() ? average.getAsDouble() : null));
         }
         final List<AveragingOption> options = new ArrayList<>();
@@ -203,6 +214,11 @@ public class CalculateGradeInteractor implements CalculateGradeInputBoundary {
         final Double weightedGrade = grade.isPresent() ? grade.getAsDouble() : null;
         return new CalculateGradeOutputData(gradebook.getCourseId(), gradebook.getCourseName(),
                 rows, options, schemeSaved, weightedGrade, scheme.gradedWeight(gradebook));
+    }
+
+    private static GroupSettings settingsOf(GroupWeight weight) {
+        return new GroupSettings(weight.getWeightPercent(), weight.getAveraging().getId(),
+                weight.getDropLowest(), weight.getKeepBest(), weight.isCapAtFullMarks());
     }
 
     /**

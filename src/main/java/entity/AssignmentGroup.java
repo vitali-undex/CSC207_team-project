@@ -1,7 +1,6 @@
 package entity;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.OptionalDouble;
@@ -62,21 +61,15 @@ public class AssignmentGroup {
     }
 
     /**
-     * Returns the group's average after dropping its lowest marks, counting
-     * only graded work. The lowest percentages are dropped first (of two equal
-     * percentages, the one worth more points goes first, which helps the
-     * student more), and at least one graded mark is always kept.
+     * Returns the group's average over its graded work. Ungraded assignments
+     * are left out; the strategy, with any rules wrapped around it, decides
+     * how the rest count.
      *
-     * @param dropLowest how many of the lowest marks to drop, 0 to keep them all
-     * @param averaging  how the marks that are left are averaged, not null
+     * @param rule how the graded marks are averaged, not null
      * @return the average as a percentage, or empty if nothing is graded yet
-     * @throws IllegalArgumentException if dropLowest is negative
      */
-    public OptionalDouble average(int dropLowest, AveragingStrategy averaging) {
-        Objects.requireNonNull(averaging, "averaging");
-        if (dropLowest < 0) {
-            throw new IllegalArgumentException("dropLowest must not be negative");
-        }
+    public OptionalDouble average(AveragingStrategy rule) {
+        Objects.requireNonNull(rule, "rule");
         final List<GradedAssignment> graded = new ArrayList<>();
         for (GradedAssignment assignment : assignments) {
             if (assignment.isGraded()) {
@@ -86,9 +79,6 @@ public class AssignmentGroup {
         if (graded.isEmpty()) {
             return OptionalDouble.empty();
         }
-        graded.sort(Comparator.comparingDouble(GradedAssignment::getPercent).thenComparing(
-                Comparator.comparingDouble(GradedAssignment::getPointsPossible).reversed()));
-        final int dropped = Math.min(dropLowest, graded.size() - 1);
-        return OptionalDouble.of(averaging.average(graded.subList(dropped, graded.size())));
+        return OptionalDouble.of(rule.average(graded));
     }
 }

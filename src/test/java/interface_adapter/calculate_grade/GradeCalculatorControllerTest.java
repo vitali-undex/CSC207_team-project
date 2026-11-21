@@ -27,9 +27,9 @@ class GradeCalculatorControllerTest {
     @Test
     void calculateSendsWhatTheStudentTypedAsNumbers() {
         controller.calculate("course-1", List.of(
-                new WeightEntry("quizzes", "20", "1", "equal"),
-                new WeightEntry("midterm", " 30% ", "", "points"),
-                new WeightEntry("final", "50.5", " 2 ", "points")));
+                new WeightEntry("quizzes", "20", "equal", "1", "", false),
+                new WeightEntry("midterm", " 30% ", "points", "", "", false),
+                new WeightEntry("final", "50.5", "points", " 2 ", " 8 ", true)));
 
         CalculateGradeInputData sent = interactor.executed;
         assertEquals("course-1", sent.getCourseId());
@@ -38,10 +38,14 @@ class GradeCalculatorControllerTest {
         assertEquals(20.0, quizzes.getWeightPercent());
         assertEquals(1, quizzes.getDropLowest());
         assertEquals("equal", quizzes.getAveragingId());
+        assertEquals(0, quizzes.getKeepBest());
+        assertEquals(false, quizzes.isCapAtFullMarks());
         assertEquals(30.0, sent.getWeights().get(1).getWeightPercent());
         assertEquals(0, sent.getWeights().get(1).getDropLowest());
         assertEquals(50.5, sent.getWeights().get(2).getWeightPercent());
         assertEquals(2, sent.getWeights().get(2).getDropLowest());
+        assertEquals(8, sent.getWeights().get(2).getKeepBest());
+        assertEquals(true, sent.getWeights().get(2).isCapAtFullMarks());
     }
 
     @Test
@@ -54,12 +58,12 @@ class GradeCalculatorControllerTest {
 
     @Test
     void blankDropsMeanNoneAndOtherTextIsNotANumber() {
-        assertEquals(0, GradeCalculatorController.parseDrop(""));
-        assertEquals(0, GradeCalculatorController.parseDrop("   "));
-        assertEquals(0, GradeCalculatorController.parseDrop(null));
-        assertEquals(-1, GradeCalculatorController.parseDrop("-1"));
-        assertNull(GradeCalculatorController.parseDrop("1.5"));
-        assertNull(GradeCalculatorController.parseDrop("one"));
+        assertEquals(0, GradeCalculatorController.parseCount(""));
+        assertEquals(0, GradeCalculatorController.parseCount("   "));
+        assertEquals(0, GradeCalculatorController.parseCount(null));
+        assertEquals(-1, GradeCalculatorController.parseCount("-1"));
+        assertNull(GradeCalculatorController.parseCount("1.5"));
+        assertNull(GradeCalculatorController.parseCount("one"));
     }
 
     /** Remembers what the controller asked for. */
