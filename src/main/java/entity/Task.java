@@ -17,8 +17,8 @@ public class Task {
      */
 
     public static final Comparator<Task> DUE_DATE_ORDER = Comparator
-            .comparing(Task::getDueDate, Comparator.nullsLast(Comparator.naturalOrder()))
-            .thenComparing(Task::getTitle, String.CASE_INSENSITIVE_ORDER);
+        .comparing(Task::getDueDate, Comparator.nullsLast(Comparator.naturalOrder()))
+        .thenComparing(Task::getTitle, String.CASE_INSENSITIVE_ORDER);
 
     private final String id;
     private final String title;
@@ -73,17 +73,15 @@ public class Task {
         return done;
     }
 
-    /** Returns whether the task is linked to a course. */
     public boolean hasCourse() {
         return courseId != null;
     }
 
-    /** Returns whether the task has a due date. */
     public boolean hasDueDate() {
         return dueDate != null;
     }
 
-    // Consider combining the completion actions into one toggle.
+/** For the ticks, we can potentially turn it into a single on-off method */
     /** Ticks the task off. */
     public void complete() {
         done = true;

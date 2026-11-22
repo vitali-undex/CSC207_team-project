@@ -17,7 +17,7 @@ class CalendarCacheDataAccessInterfaceTest {
     Path directory;
 
     @Test
-    void distinguishesAMissingSnapshotFromASuccessfulSyncWithNoCourses() throws IOException {
+    void distinguishesMissingSnapshotFromSuccessfulSyncWithNoCourses() throws IOException {
         final CalendarCacheDataAccessInterface cache =
                 new JsonCalendarDataAccessObject(directory.resolve("deadlines.json"));
         assertTrue(cache.readSnapshot().isEmpty());

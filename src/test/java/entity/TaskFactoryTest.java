@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-/** Tests creation of personal tasks. */
 public class TaskFactoryTest {
     @Test
     void createMakesTaskThatIsNotDone() {

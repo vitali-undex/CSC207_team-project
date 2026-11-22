@@ -121,7 +121,7 @@ class CalendarAppBuilderTest {
             final String query = exchange.getRequestURI().getRawQuery();
             final String path = exchange.getRequestURI().getPath();
             if (offline || !"Bearer test-token".equals(exchange.getRequestHeaders()
-                .getFirst("Authorization"))) {
+                    .getFirst("Authorization"))) {
                 exchange.sendResponseHeaders(503, -1);
                 return;
             }
@@ -158,7 +158,7 @@ class CalendarAppBuilderTest {
             assertTrue(details.getModel().getElementAt(0).toString().contains("First page"));
             final String second = details.getModel().getElementAt(1).toString();
             assertTrue(second.contains("Second page") && second.contains("12.5 pts")
-                && second.contains("CSC207"));
+                    && second.contains("CSC207"));
         });
     }
 

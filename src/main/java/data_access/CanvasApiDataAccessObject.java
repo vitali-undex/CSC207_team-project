@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
 /** Reads assignments for all active courses of one Canvas account. */
 public final class CanvasApiDataAccessObject implements CalendarAssignmentDataAccessInterface {
     private static final Pattern NEXT_LINK =
-        Pattern.compile("<([^>]+)>\\s*;\\s*rel=\"?next\"?(?=\\s*[,;]|\\s*$)");
+            Pattern.compile("<([^>]+)>\\s*;\\s*rel=\"?next\"?(?=\\s*[,;]|\\s*$)");
     private static final Duration TIMEOUT = Duration.ofSeconds(10);
 
     private final HttpClient client;
@@ -53,14 +53,14 @@ public final class CanvasApiDataAccessObject implements CalendarAssignmentDataAc
         final List<Assignment> assignments = new ArrayList<>();
         try {
             for (JsonObject course
-                : loadPages("/api/v1/courses?enrollment_state=active&per_page=100")) {
+                    : loadPages("/api/v1/courses?enrollment_state=active&per_page=100")) {
                 final String id = requiredText(course, "id");
                 final String name = requiredText(course, "name");
                 final String code = optionalText(course, "course_code");
                 courses.add(new Course(id, code == null || code.isBlank() ? name : code, name));
 
                 final String path =
-                    "/api/v1/courses/" + URLEncoder.encode(id, StandardCharsets.UTF_8)
+                        "/api/v1/courses/" + URLEncoder.encode(id, StandardCharsets.UTF_8)
                         + "/assignments?override_assignment_dates=true&per_page=100";
                 for (JsonObject assignment : loadPages(path)) {
                     final String due = optionalText(assignment, "due_at");

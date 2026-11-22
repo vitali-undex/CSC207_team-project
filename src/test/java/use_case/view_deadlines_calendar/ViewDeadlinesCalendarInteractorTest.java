@@ -29,9 +29,9 @@ class ViewDeadlinesCalendarInteractorTest {
         execute(() -> snapshot, MONTH);
 
         final List<DeadlineSummary> deadlines =
-            presenter.output.getDeadlines().get(MONTH.atEndOfMonth());
+                presenter.output.getDeadlines().get(MONTH.atEndOfMonth());
         assertEquals(List.of("Early", "Late"), List.of(deadlines.get(0).getTitle(),
-            deadlines.get(1).getTitle()));
+                deadlines.get(1).getTitle()));
         assertEquals("CSC207", deadlines.get(1).getCourse());
         assertEquals(new BigDecimal("15.5"), deadlines.get(1).getPointsPossible());
         assertNull(deadlines.get(0).getPointsPossible());
@@ -54,7 +54,7 @@ class ViewDeadlinesCalendarInteractorTest {
     }
 
     @Test
-    void distinguishesAnEmptyMonthFromAFirstOfflineLoad() {
+    void distinguishesEmptyMonthFromInitialOfflineLoad() {
         execute(ViewDeadlinesCalendarInteractorTest::offline, MONTH);
         assertNull(presenter.output);
         assertTrue(presenter.failure.contains("no saved copy"));
@@ -68,7 +68,7 @@ class ViewDeadlinesCalendarInteractorTest {
         cache.failWrite = true;
         execute(ViewDeadlinesCalendarInteractorTest::snapshot, MONTH);
         assertEquals(ViewDeadlinesCalendarOutputData.Source.LIVE_WITHOUT_BACKUP,
-            presenter.output.getSource());
+                presenter.output.getSource());
         assertEquals(2, presenter.output.getDeadlines().get(MONTH.atEndOfMonth()).size());
     }
 
@@ -85,7 +85,7 @@ class ViewDeadlinesCalendarInteractorTest {
         return new CalendarSnapshot(List.of(new Course("a", "CSC207", "Software Design"),
                 new Course("b", "CSC236", "Theory")), List.of(
                     new Assignment("1", "a", "Late", Instant.parse("2027-03-01T04:59:00Z"),
-                        new BigDecimal("15.5")),
+                            new BigDecimal("15.5")),
                     new Assignment("2", "b", "Early", Instant.parse("2027-02-28T20:00:00Z"), null),
                     new Assignment("3", "a", "March assignment",
                         Instant.parse("2027-03-01T05:00:00Z"), null),

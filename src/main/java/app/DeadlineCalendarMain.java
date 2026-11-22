@@ -65,7 +65,7 @@ public final class DeadlineCalendarMain {
         final String configuredToken = System.getenv("CANVAS_API_TOKEN");
         if (configuredToken != null && !configuredToken.isBlank()) {
             SwingUtilities.invokeLater(() -> connectCalendar(frame, content, clock, builder,
-                configuredToken.strip()));
+                    configuredToken.strip()));
         }
     }
 
@@ -89,7 +89,7 @@ public final class DeadlineCalendarMain {
                 .followRedirects(HttpClient.Redirect.NEVER)
                 .build();
         final CanvasApiDataAccessObject online =
-            new CanvasApiDataAccessObject(client, origin, token, clock);
+                new CanvasApiDataAccessObject(client, origin, token, clock);
         final Path cacheFile = Path.of(System.getProperty("user.home"), ".quercus-tracker",
                 "deadlines-" + cacheKey(origin, token) + ".json");
         final CalendarView calendar =

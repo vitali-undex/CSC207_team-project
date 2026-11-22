@@ -81,7 +81,7 @@ public final class ViewDeadlinesCalendarInteractor implements ViewDeadlinesCalen
                 final ZonedDateTime due = assignment.getDueAt().atZone(inputData.getZone());
                 if (YearMonth.from(due).equals(inputData.getMonth())) {
                     final String course = courseCodes.getOrDefault(assignment.getCourseId(),
-                        assignment.getCourseId());
+                            assignment.getCourseId());
                     final DeadlineSummary deadline =
                             new DeadlineSummary(course, assignment.getName(), due,
                                 assignment.getPointsPossible());
@@ -92,7 +92,7 @@ public final class ViewDeadlinesCalendarInteractor implements ViewDeadlinesCalen
         }
         byDay.replaceAll((date, deadlines) -> {
             deadlines.sort(Comparator.comparing((DeadlineSummary deadline) ->
-                deadline.getDueAt().toInstant())
+                    deadline.getDueAt().toInstant())
                     .thenComparing(DeadlineSummary::getCourse)
                     .thenComparing(DeadlineSummary::getTitle));
             return List.copyOf(deadlines);

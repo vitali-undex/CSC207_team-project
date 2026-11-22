@@ -1,7 +1,7 @@
 package view;
 
-import org.junit.jupiter.api.Test;
 import app.CalendarAppBuilder;
+import org.junit.jupiter.api.Test;
 import javax.swing.JSpinner;
 import javax.swing.SwingUtilities;
 import java.awt.Component;
@@ -10,7 +10,8 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class CalendarViewTest {
     @Test

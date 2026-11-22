@@ -167,7 +167,7 @@ public final class CalendarView extends JPanel {
             cell.setOpaque(true);
             cell.setForeground(INK);
             cell.addActionListener(event ->
-                controller.selectDate((LocalDate) cell.getClientProperty("date")));
+                    controller.selectDate((LocalDate) cell.getClientProperty("date")));
             days[index] = cell;
             grid.add(cell);
         }
@@ -226,11 +226,11 @@ public final class CalendarView extends JPanel {
                     catch (InterruptedException exception) {
                         Thread.currentThread().interrupt();
                         model.showMonth(target, java.util.Map.of(),
-                            "Calendar load was interrupted.");
+                                "Calendar load was interrupted.");
                     }
                     catch (ExecutionException exception) {
                         model.showMonth(target, java.util.Map.of(),
-                            "Could not load the calendar. Try Refresh.");
+                                "Could not load the calendar. Try Refresh.");
                     }
                 }
             }.execute();
@@ -256,7 +256,7 @@ public final class CalendarView extends JPanel {
         for (int index = 0; index < days.length; index++) {
             final int day = index - offset + 1;
             final LocalDate date =
-                day >= 1 && day <= displayed.lengthOfMonth() ? displayed.atDay(day) : null;
+                    day >= 1 && day <= displayed.lengthOfMonth() ? displayed.atDay(day) : null;
             final JButton cell = days[index];
             cell.putClientProperty("date", date);
             cell.setEnabled(date != null);
@@ -270,7 +270,7 @@ public final class CalendarView extends JPanel {
     private String dayPreview(LocalDate date) {
         final List<DeadlineSummary> deadlines = model.getDeadlines(date);
         final StringBuilder text =
-            new StringBuilder("<html><b>").append(date.getDayOfMonth()).append("</b>");
+                new StringBuilder("<html><b>").append(date.getDayOfMonth()).append("</b>");
         final int previewCount = Math.min(MAX_PREVIEWS, deadlines.size());
         for (DeadlineSummary deadline : deadlines.subList(0, previewCount)) {
             final String label = deadline.getCourse() + " · " + deadline.getTitle();

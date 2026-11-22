@@ -29,7 +29,7 @@ public final class CalendarAppBuilder {
         final ViewDeadlinesCalendarPresenter presenter =
                 new ViewDeadlinesCalendarPresenter(viewModel, SwingUtilities::invokeLater);
         final ViewDeadlinesCalendarInteractor interactor =
-            new ViewDeadlinesCalendarInteractor(online, cache, presenter);
+                new ViewDeadlinesCalendarInteractor(online, cache, presenter);
         final ViewDeadlinesCalendarController controller =
                 new ViewDeadlinesCalendarController(interactor, viewModel, clock.getZone());
         return new CalendarView(viewModel, controller, clock, true);

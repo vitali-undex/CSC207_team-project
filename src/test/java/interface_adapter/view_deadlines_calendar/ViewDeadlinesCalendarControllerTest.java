@@ -16,7 +16,7 @@ class ViewDeadlinesCalendarControllerTest {
         CalendarViewModel model = new CalendarViewModel(today);
         AtomicReference<ViewDeadlinesCalendarInputData> input = new AtomicReference<>();
         ViewDeadlinesCalendarController controller =
-            new ViewDeadlinesCalendarController(input::set, model, zone);
+                new ViewDeadlinesCalendarController(input::set, model, zone);
         YearMonth month = YearMonth.of(2028, 1);
         controller.loadMonth(month);
         controller.selectDate(today.minusDays(1));

@@ -50,7 +50,7 @@ public final class CalendarViewModel {
 
     /** Applies deadlines and a status message if the loaded month is still displayed. */
     public void showMonth(
-        YearMonth loadedMonth, Map<LocalDate,
+            YearMonth loadedMonth, Map<LocalDate,
             List<DeadlineSummary>> loadedDeadlines,
                           String message) {
         if (month.equals(loadedMonth)) {

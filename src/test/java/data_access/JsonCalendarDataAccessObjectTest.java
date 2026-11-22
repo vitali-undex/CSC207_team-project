@@ -1,8 +1,8 @@
 package data_access;
 
-import org.junit.jupiter.api.Test;
 import entity.Assignment;
 import entity.Course;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import use_case.view_deadlines_calendar.CalendarSnapshot;
 
@@ -12,7 +12,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class JsonCalendarDataAccessObjectTest {
     @TempDir
@@ -28,7 +30,7 @@ class JsonCalendarDataAccessObjectTest {
                 List.of(new Assignment("2", "1", "Quiz", due, new BigDecimal("12.5"))), due));
 
         CalendarSnapshot restored =
-            new JsonCalendarDataAccessObject(file).readSnapshot().orElseThrow();
+                new JsonCalendarDataAccessObject(file).readSnapshot().orElseThrow();
         assertEquals("CSC207", restored.getCourses().get(0).getCode());
         assertEquals(due, restored.getAssignments().get(0).getDueAt());
         assertEquals(new BigDecimal("12.5"), restored.getAssignments().get(0).getPointsPossible());

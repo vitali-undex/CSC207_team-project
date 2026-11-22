@@ -1,14 +1,15 @@
 package data_access;
 
-import org.junit.jupiter.api.Test;
 import com.sun.net.httpserver.HttpServer;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.time.Clock;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class CanvasApiDataAccessObjectTest {
     @Test
@@ -32,7 +33,7 @@ class CanvasApiDataAccessObjectTest {
                     new CanvasApiDataAccessObject(HttpClient.newHttpClient(), origin, "test-token",
                         Clock.systemUTC());
             assertEquals("Invalid Canvas pagination link.", assertThrows(IOException.class,
-                dao::loadAssignments).getMessage());
+                    dao::loadAssignments).getMessage());
         }
         finally {
             server.stop(0);

@@ -8,7 +8,9 @@ import java.time.ZonedDateTime;
 import java.util.ArrayDeque;
 import java.util.Map;
 import java.util.Queue;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ViewDeadlinesCalendarPresenterTest {
     @Test
@@ -18,7 +20,7 @@ class ViewDeadlinesCalendarPresenterTest {
         CalendarViewModel model = new CalendarViewModel(selected);
         Queue<Runnable> ui = new ArrayDeque<>();
         ViewDeadlinesCalendarPresenter presenter =
-            new ViewDeadlinesCalendarPresenter(model, ui::add);
+                new ViewDeadlinesCalendarPresenter(model, ui::add);
         model.beginLoad(selected);
         presenter.prepareSuccessView(new ViewDeadlinesCalendarOutputData(month, Map.of(),
                 ZonedDateTime.parse("2027-12-31T12:00:00-05:00[America/Toronto]"),

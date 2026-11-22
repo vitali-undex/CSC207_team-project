@@ -67,7 +67,7 @@ public final class JsonCalendarDataAccessObject implements CalendarCacheDataAcce
                 GSON.toJson(snapshot, writer);
             }
             Files.move(temporary, file, StandardCopyOption.ATOMIC_MOVE,
-                StandardCopyOption.REPLACE_EXISTING);
+                    StandardCopyOption.REPLACE_EXISTING);
         }
         finally {
             Files.deleteIfExists(temporary);

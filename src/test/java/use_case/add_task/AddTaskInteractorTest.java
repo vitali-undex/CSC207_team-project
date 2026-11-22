@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Tests validation and persistence when adding a personal task. */
 public class AddTaskInteractorTest {
     /** BEWARE!! Every test runs on the fixed date: Monday, November 16, 2026. */
     private static final LocalDate TODAY = LocalDate.of(2026, 11, 16);

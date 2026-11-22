@@ -6,11 +6,13 @@ import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CalendarViewModelTest {
     @Test
-    void keepsCurrentMonthWhenADifferentMonthFinishesLoading() {
+    void keepsCurrentMonthWhenAnotherMonthFinishesLoading() {
         LocalDate today = LocalDate.of(2027, 12, 31);
         CalendarViewModel model = new CalendarViewModel(today);
         List<String> events = new ArrayList<>();
