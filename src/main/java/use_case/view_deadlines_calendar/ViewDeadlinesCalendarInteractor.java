@@ -15,11 +15,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/** Loads deadlines from Canvas or the cache and organizes them by local date. */
 public final class ViewDeadlinesCalendarInteractor implements ViewDeadlinesCalendarInputBoundary {
     private final CalendarAssignmentDataAccessInterface online;
     private final CalendarCacheDataAccessInterface cache;
     private final ViewDeadlinesCalendarOutputBoundary presenter;
 
+    /** Connects the online source, local cache, and presenter for the calendar use case. */
     public ViewDeadlinesCalendarInteractor(CalendarAssignmentDataAccessInterface online,
                                            CalendarCacheDataAccessInterface cache,
                                            ViewDeadlinesCalendarOutputBoundary presenter) {
@@ -66,7 +68,8 @@ public final class ViewDeadlinesCalendarInteractor implements ViewDeadlinesCalen
         }
     }
 
-    private void presentMonth(ViewDeadlinesCalendarInputData inputData, CalendarSnapshot snapshot, Source source) {
+    private void presentMonth(ViewDeadlinesCalendarInputData inputData,
+                              CalendarSnapshot snapshot, Source source) {
         final Map<String, String> courseCodes = new HashMap<>();
         for (Course course : snapshot.getCourses()) {
             courseCodes.put(course.getId(), course.getCode());
@@ -77,20 +80,24 @@ public final class ViewDeadlinesCalendarInteractor implements ViewDeadlinesCalen
             if (assignment.getDueAt() != null) {
                 final ZonedDateTime due = assignment.getDueAt().atZone(inputData.getZone());
                 if (YearMonth.from(due).equals(inputData.getMonth())) {
-                    final String course = courseCodes.getOrDefault(assignment.getCourseId(), assignment.getCourseId());
+                    final String course = courseCodes.getOrDefault(assignment.getCourseId(),
+                        assignment.getCourseId());
                     final DeadlineSummary deadline =
-                            new DeadlineSummary(course, assignment.getName(), due, assignment.getPointsPossible());
-                    byDay.computeIfAbsent(due.toLocalDate(), date -> new ArrayList<>()).add(deadline);
+                            new DeadlineSummary(course, assignment.getName(), due,
+                                assignment.getPointsPossible());
+                    byDay.computeIfAbsent(due.toLocalDate(),
+                        date -> new ArrayList<>()).add(deadline);
                 }
             }
         }
         byDay.replaceAll((date, deadlines) -> {
-            deadlines.sort(Comparator.comparing((DeadlineSummary deadline) -> deadline.getDueAt().toInstant())
+            deadlines.sort(Comparator.comparing((DeadlineSummary deadline) ->
+                deadline.getDueAt().toInstant())
                     .thenComparing(DeadlineSummary::getCourse)
                     .thenComparing(DeadlineSummary::getTitle));
             return List.copyOf(deadlines);
         });
-        presenter.prepareSuccessView(new ViewDeadlinesCalendarOutputData(inputData.getMonth(), byDay,
-                snapshot.getSyncedAt().atZone(inputData.getZone()), source));
+        presenter.prepareSuccessView(new ViewDeadlinesCalendarOutputData(inputData.getMonth(),
+                byDay, snapshot.getSyncedAt().atZone(inputData.getZone()), source));
     }
 }

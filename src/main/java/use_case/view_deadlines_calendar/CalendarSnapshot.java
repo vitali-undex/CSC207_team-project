@@ -12,6 +12,7 @@ public final class CalendarSnapshot {
     private final List<Assignment> assignments;
     private final Instant syncedAt;
 
+    /** Captures copies of the courses and assignments and the time they were loaded. */
     public CalendarSnapshot(List<Course> courses, List<Assignment> assignments, Instant syncedAt) {
         this.courses = List.copyOf(courses);
         this.assignments = List.copyOf(assignments);

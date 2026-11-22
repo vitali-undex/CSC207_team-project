@@ -14,7 +14,8 @@ class CalendarAssignmentDataAccessInterfaceTest {
     @Test
     void exposesAnIoFailureWhenTheOnlineSourceCannotBeRead() {
         final CalendarAssignmentDataAccessInterface source = new CanvasApiDataAccessObject(
-                HttpClient.newHttpClient(), URI.create("http://127.0.0.1:0"), "test-token", Clock.systemUTC());
+                HttpClient.newHttpClient(), URI.create("http://127.0.0.1:0"),
+                "test-token", Clock.systemUTC());
         assertThrows(IOException.class, source::loadAssignments);
     }
 }

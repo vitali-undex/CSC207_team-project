@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/** Tests how tasks are filtered and converted into list entries. */
 public class TaskListMapperTest {
 
     private static final LocalDate TODAY = LocalDate.of(2026, 11, 16);

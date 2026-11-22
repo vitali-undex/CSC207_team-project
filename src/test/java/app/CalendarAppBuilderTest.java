@@ -49,7 +49,8 @@ class CalendarAppBuilderTest {
             button(preview, "Next month").doClick();
             assertEquals(LocalDate.of(2028, 1, 1), preview.getSelectedDate());
             assertTrue(components(preview, JLabel.class).stream()
-                    .anyMatch(label -> "Connect Quercus to see your deadlines.".equals(label.getText())));
+                    .anyMatch(label ->
+                        "Connect Quercus to see your deadlines.".equals(label.getText())));
         });
     }
 
@@ -63,7 +64,8 @@ class CalendarAppBuilderTest {
         try {
             final Path file = directory.resolve("deadlines.json");
             final CanvasApiDataAccessObject online =
-                    new CanvasApiDataAccessObject(HttpClient.newHttpClient(), origin, "test-token", CLOCK);
+                    new CanvasApiDataAccessObject(HttpClient.newHttpClient(), origin, "test-token",
+                        CLOCK);
             final CalendarView first = open(online, file);
             awaitStatus(first, "Synced");
             SwingUtilities.invokeAndWait(() -> {
@@ -106,7 +108,8 @@ class CalendarAppBuilderTest {
         final AtomicReference<CalendarView> result = new AtomicReference<>();
         SwingUtilities.invokeAndWait(() -> {
             final CalendarView calendar =
-                    new CalendarAppBuilder().build(online, new JsonCalendarDataAccessObject(file), CLOCK);
+                    new CalendarAppBuilder().build(online, new JsonCalendarDataAccessObject(file),
+                        CLOCK);
             calendar.open();
             result.set(calendar);
         });
@@ -117,7 +120,8 @@ class CalendarAppBuilderTest {
         try {
             final String query = exchange.getRequestURI().getRawQuery();
             final String path = exchange.getRequestURI().getPath();
-            if (offline || !"Bearer test-token".equals(exchange.getRequestHeaders().getFirst("Authorization"))) {
+            if (offline || !"Bearer test-token".equals(exchange.getRequestHeaders()
+                .getFirst("Authorization"))) {
                 exchange.sendResponseHeaders(503, -1);
                 return;
             }
@@ -145,14 +149,16 @@ class CalendarAppBuilderTest {
     private static void assertLeapDay(CalendarView calendar) throws Exception {
         SwingUtilities.invokeAndWait(() -> {
             final JButton leapDay = components(calendar, JButton.class).stream()
-                    .filter(button -> LocalDate.of(2028, 2, 29).equals(button.getClientProperty("date")))
+                    .filter(button -> LocalDate.of(2028, 2,
+                        29).equals(button.getClientProperty("date")))
                     .findFirst().orElseThrow();
             leapDay.doClick();
             final JList<?> details = find(calendar, JList.class);
             assertEquals(2, details.getModel().getSize());
             assertTrue(details.getModel().getElementAt(0).toString().contains("First page"));
             final String second = details.getModel().getElementAt(1).toString();
-            assertTrue(second.contains("Second page") && second.contains("12.5 pts") && second.contains("CSC207"));
+            assertTrue(second.contains("Second page") && second.contains("12.5 pts")
+                && second.contains("CSC207"));
         });
     }
 
@@ -161,7 +167,8 @@ class CalendarAppBuilderTest {
         final long deadline = System.nanoTime() + java.time.Duration.ofSeconds(6).toNanos();
         while (!found.get() && System.nanoTime() < deadline) {
             SwingUtilities.invokeAndWait(() -> found.set(components(calendar, JLabel.class).stream()
-                    .anyMatch(label -> label.getText() != null && label.getText().contains(expected))));
+                    .anyMatch(label -> label.getText() != null
+                        && label.getText().contains(expected))));
             if (!found.get()) {
                 Thread.sleep(20);
             }
@@ -171,7 +178,8 @@ class CalendarAppBuilderTest {
 
     private static JButton button(CalendarView view, String accessibleName) {
         return components(view, JButton.class).stream()
-                .filter(button -> accessibleName.equals(button.getAccessibleContext().getAccessibleName()))
+                .filter(button ->
+                    accessibleName.equals(button.getAccessibleContext().getAccessibleName()))
                 .findFirst().orElseThrow();
     }
 

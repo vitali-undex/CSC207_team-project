@@ -6,6 +6,7 @@ public final class Course {
     private final String code;
     private final String name;
 
+    /** Creates a course with its Canvas ID, course code, and display name. */
     public Course(String id, String code, String name) {
         this.id = id;
         this.code = code;

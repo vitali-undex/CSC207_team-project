@@ -11,7 +11,9 @@ public final class Assignment {
     private final Instant dueAt;
     private final BigDecimal pointsPossible;
 
-    public Assignment(String id, String courseId, String name, Instant dueAt, BigDecimal pointsPossible) {
+    /** Creates an assignment. Its due date and possible points may be absent. */
+    public Assignment(String id, String courseId, String name,
+                      Instant dueAt, BigDecimal pointsPossible) {
         this.id = id;
         this.courseId = courseId;
         this.name = name;

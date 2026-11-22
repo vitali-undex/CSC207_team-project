@@ -6,7 +6,9 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 
+/** Contains a month of deadlines and information about when and how they were loaded. */
 public final class ViewDeadlinesCalendarOutputData {
+    /** Identifies whether the data came from Canvas or the cache and whether it was saved. */
     public enum Source {
         LIVE, CACHED, LIVE_WITHOUT_BACKUP
     }
@@ -16,8 +18,10 @@ public final class ViewDeadlinesCalendarOutputData {
     private final ZonedDateTime syncedAt;
     private final Source source;
 
-    public ViewDeadlinesCalendarOutputData(YearMonth month, Map<LocalDate, List<DeadlineSummary>> deadlines,
-                                         ZonedDateTime syncedAt, Source source) {
+    /** Creates a result with deadlines grouped by date, the sync time, and the data source. */
+    public ViewDeadlinesCalendarOutputData(
+            YearMonth month, Map<LocalDate, List<DeadlineSummary>> deadlines,
+            ZonedDateTime syncedAt, Source source) {
         this.month = month;
         this.deadlines = Map.copyOf(deadlines);
         this.syncedAt = syncedAt;

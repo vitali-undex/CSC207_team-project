@@ -16,7 +16,8 @@ class CanvasApiDataAccessObjectTest {
         HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         server.createContext("/api/v1/courses", exchange -> {
             try {
-                exchange.getResponseHeaders().add("Link", "<https://outside.example/courses>; rel=next");
+                exchange.getResponseHeaders().add(
+                        "Link", "<https://outside.example/courses>; rel=next");
                 exchange.sendResponseHeaders(200, 2);
                 exchange.getResponseBody().write(new byte[]{'[', ']'});
             }
@@ -28,8 +29,10 @@ class CanvasApiDataAccessObjectTest {
         try {
             URI origin = URI.create("http://127.0.0.1:" + server.getAddress().getPort());
             CanvasApiDataAccessObject dao =
-                    new CanvasApiDataAccessObject(HttpClient.newHttpClient(), origin, "test-token", Clock.systemUTC());
-            assertEquals("Invalid Canvas pagination link.", assertThrows(IOException.class, dao::loadAssignments).getMessage());
+                    new CanvasApiDataAccessObject(HttpClient.newHttpClient(), origin, "test-token",
+                        Clock.systemUTC());
+            assertEquals("Invalid Canvas pagination link.", assertThrows(IOException.class,
+                dao::loadAssignments).getMessage());
         }
         finally {
             server.stop(0);

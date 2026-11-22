@@ -24,13 +24,16 @@ import java.util.Optional;
 public final class JsonCalendarDataAccessObject implements CalendarCacheDataAccessInterface {
     private static final Gson GSON = new GsonBuilder()
             .registerTypeAdapter(Instant.class,
-                    (JsonSerializer<Instant>) (instant, type, context) -> new JsonPrimitive(instant.toString()))
+                    (JsonSerializer<Instant>) (instant, type, context) ->
+                            new JsonPrimitive(instant.toString()))
             .registerTypeAdapter(Instant.class,
-                    (JsonDeserializer<Instant>) (json, type, context) -> Instant.parse(json.getAsString()))
+                    (JsonDeserializer<Instant>) (json, type, context) ->
+                            Instant.parse(json.getAsString()))
             .create();
 
     private final Path file;
 
+    /** Uses the given file to read and save calendar snapshots. */
     public JsonCalendarDataAccessObject(Path file) {
         this.file = file.toAbsolutePath();
     }
@@ -39,12 +42,13 @@ public final class JsonCalendarDataAccessObject implements CalendarCacheDataAcce
     public Optional<CalendarSnapshot> readSnapshot() throws IOException {
         try (Reader reader = Files.newBufferedReader(file)) {
             final CalendarSnapshot snapshot = GSON.fromJson(reader, CalendarSnapshot.class);
-            if (snapshot == null || snapshot.getCourses() == null || snapshot.getAssignments() == null
+            if (snapshot == null || snapshot.getCourses() == null
+                    || snapshot.getAssignments() == null
                     || snapshot.getSyncedAt() == null) {
                 throw new IOException("Incomplete calendar cache.");
             }
-            return Optional.of(new CalendarSnapshot(snapshot.getCourses(), snapshot.getAssignments(),
-                    snapshot.getSyncedAt()));
+            return Optional.of(new CalendarSnapshot(
+                    snapshot.getCourses(), snapshot.getAssignments(), snapshot.getSyncedAt()));
         }
         catch (NoSuchFileException exception) {
             return Optional.empty();
@@ -62,7 +66,8 @@ public final class JsonCalendarDataAccessObject implements CalendarCacheDataAcce
             try (Writer writer = Files.newBufferedWriter(temporary)) {
                 GSON.toJson(snapshot, writer);
             }
-            Files.move(temporary, file, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            Files.move(temporary, file, StandardCopyOption.ATOMIC_MOVE,
+                StandardCopyOption.REPLACE_EXISTING);
         }
         finally {
             Files.deleteIfExists(temporary);

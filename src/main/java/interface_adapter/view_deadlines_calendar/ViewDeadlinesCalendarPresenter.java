@@ -8,12 +8,15 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
+/** Formats calendar results and delivers them to the view model. */
 public final class ViewDeadlinesCalendarPresenter implements ViewDeadlinesCalendarOutputBoundary {
-    private static final DateTimeFormatter SYNC_TIME = DateTimeFormatter.ofPattern("MMM d, uuuu 'at' h:mm a z");
+    private static final DateTimeFormatter SYNC_TIME =
+        DateTimeFormatter.ofPattern("MMM d, uuuu 'at' h:mm a z");
 
     private final CalendarViewModel viewModel;
     private final Executor uiExecutor;
 
+    /** Creates a presenter that posts view model updates through the UI executor. */
     public ViewDeadlinesCalendarPresenter(CalendarViewModel viewModel, Executor uiExecutor) {
         this.viewModel = viewModel;
         this.uiExecutor = uiExecutor;
@@ -36,7 +39,8 @@ public final class ViewDeadlinesCalendarPresenter implements ViewDeadlinesCalend
         }
         final String message = outputData.getDeadlines().isEmpty()
                 ? "No deadlines this month · " + sourceMessage : sourceMessage;
-        uiExecutor.execute(() -> viewModel.showMonth(outputData.getMonth(), outputData.getDeadlines(), message));
+        uiExecutor.execute(() -> viewModel.showMonth(outputData.getMonth(),
+            outputData.getDeadlines(), message));
     }
 
     @Override

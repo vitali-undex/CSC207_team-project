@@ -27,7 +27,8 @@ class JsonCalendarDataAccessObjectTest {
         cache.saveSnapshot(new CalendarSnapshot(List.of(new Course("1", "CSC207", "Design")),
                 List.of(new Assignment("2", "1", "Quiz", due, new BigDecimal("12.5"))), due));
 
-        CalendarSnapshot restored = new JsonCalendarDataAccessObject(file).readSnapshot().orElseThrow();
+        CalendarSnapshot restored =
+            new JsonCalendarDataAccessObject(file).readSnapshot().orElseThrow();
         assertEquals("CSC207", restored.getCourses().get(0).getCode());
         assertEquals(due, restored.getAssignments().get(0).getDueAt());
         assertEquals(new BigDecimal("12.5"), restored.getAssignments().get(0).getPointsPossible());

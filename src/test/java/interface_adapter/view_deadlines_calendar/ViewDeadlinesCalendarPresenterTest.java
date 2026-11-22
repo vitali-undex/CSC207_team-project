@@ -17,7 +17,8 @@ class ViewDeadlinesCalendarPresenterTest {
         YearMonth month = YearMonth.from(selected);
         CalendarViewModel model = new CalendarViewModel(selected);
         Queue<Runnable> ui = new ArrayDeque<>();
-        ViewDeadlinesCalendarPresenter presenter = new ViewDeadlinesCalendarPresenter(model, ui::add);
+        ViewDeadlinesCalendarPresenter presenter =
+            new ViewDeadlinesCalendarPresenter(model, ui::add);
         model.beginLoad(selected);
         presenter.prepareSuccessView(new ViewDeadlinesCalendarOutputData(month, Map.of(),
                 ZonedDateTime.parse("2027-12-31T12:00:00-05:00[America/Toronto]"),

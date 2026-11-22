@@ -28,8 +28,10 @@ class ViewDeadlinesCalendarInteractorTest {
         final CalendarSnapshot snapshot = snapshot();
         execute(() -> snapshot, MONTH);
 
-        final List<DeadlineSummary> deadlines = presenter.output.getDeadlines().get(MONTH.atEndOfMonth());
-        assertEquals(List.of("Early", "Late"), List.of(deadlines.get(0).getTitle(), deadlines.get(1).getTitle()));
+        final List<DeadlineSummary> deadlines =
+            presenter.output.getDeadlines().get(MONTH.atEndOfMonth());
+        assertEquals(List.of("Early", "Late"), List.of(deadlines.get(0).getTitle(),
+            deadlines.get(1).getTitle()));
         assertEquals("CSC207", deadlines.get(1).getCourse());
         assertEquals(new BigDecimal("15.5"), deadlines.get(1).getPointsPossible());
         assertNull(deadlines.get(0).getPointsPossible());
@@ -65,7 +67,8 @@ class ViewDeadlinesCalendarInteractorTest {
     void showsLiveDeadlinesWhenTheBackupCannotBeSaved() {
         cache.failWrite = true;
         execute(ViewDeadlinesCalendarInteractorTest::snapshot, MONTH);
-        assertEquals(ViewDeadlinesCalendarOutputData.Source.LIVE_WITHOUT_BACKUP, presenter.output.getSource());
+        assertEquals(ViewDeadlinesCalendarOutputData.Source.LIVE_WITHOUT_BACKUP,
+            presenter.output.getSource());
         assertEquals(2, presenter.output.getDeadlines().get(MONTH.atEndOfMonth()).size());
     }
 
@@ -81,10 +84,13 @@ class ViewDeadlinesCalendarInteractorTest {
     private static CalendarSnapshot snapshot() {
         return new CalendarSnapshot(List.of(new Course("a", "CSC207", "Software Design"),
                 new Course("b", "CSC236", "Theory")), List.of(
-                new Assignment("1", "a", "Late", Instant.parse("2027-03-01T04:59:00Z"), new BigDecimal("15.5")),
-                new Assignment("2", "b", "Early", Instant.parse("2027-02-28T20:00:00Z"), null),
-                new Assignment("3", "a", "March assignment", Instant.parse("2027-03-01T05:00:00Z"), null),
-                new Assignment("4", "b", "Undated", null, null)), Instant.parse("2027-02-26T15:00:00Z"));
+                    new Assignment("1", "a", "Late", Instant.parse("2027-03-01T04:59:00Z"),
+                        new BigDecimal("15.5")),
+                    new Assignment("2", "b", "Early", Instant.parse("2027-02-28T20:00:00Z"), null),
+                    new Assignment("3", "a", "March assignment",
+                        Instant.parse("2027-03-01T05:00:00Z"), null),
+                    new Assignment("4", "b", "Undated", null, null)),
+                    Instant.parse("2027-02-26T15:00:00Z"));
     }
 
     private static final class TestCache implements CalendarCacheDataAccessInterface {

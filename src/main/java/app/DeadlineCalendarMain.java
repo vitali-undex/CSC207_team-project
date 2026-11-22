@@ -32,6 +32,7 @@ public final class DeadlineCalendarMain {
     private DeadlineCalendarMain() {
     }
 
+    /** Opens the standalone deadline calendar on the Swing event dispatch thread. */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(DeadlineCalendarMain::openWindow);
     }
@@ -63,7 +64,8 @@ public final class DeadlineCalendarMain {
 
         final String configuredToken = System.getenv("CANVAS_API_TOKEN");
         if (configuredToken != null && !configuredToken.isBlank()) {
-            SwingUtilities.invokeLater(() -> connectCalendar(frame, content, clock, builder, configuredToken.strip()));
+            SwingUtilities.invokeLater(() -> connectCalendar(frame, content, clock, builder,
+                configuredToken.strip()));
         }
     }
 
@@ -71,10 +73,13 @@ public final class DeadlineCalendarMain {
                                         CalendarAppBuilder builder, String token) {
         final URI origin;
         try {
-            origin = canvasOrigin(System.getenv().getOrDefault("CANVAS_BASE_URL", "https://q.utoronto.ca"));
+            final String address = System.getenv().getOrDefault(
+                    "CANVAS_BASE_URL", "https://q.utoronto.ca");
+            origin = canvasOrigin(address);
         }
         catch (IllegalArgumentException exception) {
-            JOptionPane.showMessageDialog(frame, "CANVAS_BASE_URL must be an HTTPS Canvas server address.",
+            JOptionPane.showMessageDialog(frame,
+                    "CANVAS_BASE_URL must be an HTTPS Canvas server address.",
                     "Quercus Calendar", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -83,7 +88,8 @@ public final class DeadlineCalendarMain {
                 .connectTimeout(Duration.ofSeconds(10))
                 .followRedirects(HttpClient.Redirect.NEVER)
                 .build();
-        final CanvasApiDataAccessObject online = new CanvasApiDataAccessObject(client, origin, token, clock);
+        final CanvasApiDataAccessObject online =
+            new CanvasApiDataAccessObject(client, origin, token, clock);
         final Path cacheFile = Path.of(System.getProperty("user.home"), ".quercus-tracker",
                 "deadlines-" + cacheKey(origin, token) + ".json");
         final CalendarView calendar =
@@ -115,13 +121,15 @@ public final class DeadlineCalendarMain {
 
     static URI canvasOrigin(String address) {
         final URI uri = URI.create(address);
-        if (!"https".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null || uri.getUserInfo() != null
+        if (!"https".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null
+                || uri.getUserInfo() != null
                 || uri.getQuery() != null || uri.getFragment() != null
                 || (!uri.getPath().isEmpty() && !"/".equals(uri.getPath()))) {
             throw new IllegalArgumentException("Expected an HTTPS origin");
         }
         final String host = uri.getHost().toLowerCase(Locale.ROOT);
-        return URI.create("https://" + host + (uri.getPort() == -1 || uri.getPort() == 443 ? "" : ":" + uri.getPort()));
+        final int port = uri.getPort();
+        return URI.create("https://" + host + (port == -1 || port == 443 ? "" : ":" + port));
     }
 
     private static String cacheKey(URI origin, String token) {

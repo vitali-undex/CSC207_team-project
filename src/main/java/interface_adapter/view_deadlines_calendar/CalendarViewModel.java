@@ -18,19 +18,23 @@ public final class CalendarViewModel {
     private String status = "";
     private boolean loading;
 
+    /** Initializes the calendar with today selected. */
     public CalendarViewModel(LocalDate today) {
         month = YearMonth.from(today);
         selectedDate = today;
     }
 
+    /** Registers a listener for calendar state changes. */
     public void addPropertyChangeListener(PropertyChangeListener listener) {
         changes.addPropertyChangeListener(listener);
     }
 
+    /** Selects the date and marks its month as loading. */
     public void beginLoad(LocalDate date) {
         showDate(date, "Loading Quercus deadlines…", true);
     }
 
+    /** Navigates to a date in the disconnected calendar. */
     public void browseDate(LocalDate date) {
         showDate(date, "", false);
     }
@@ -44,7 +48,10 @@ public final class CalendarViewModel {
         changes.firePropertyChange("calendar", null, this);
     }
 
-    public void showMonth(YearMonth loadedMonth, Map<LocalDate, List<DeadlineSummary>> loadedDeadlines,
+    /** Applies deadlines and a status message if the loaded month is still displayed. */
+    public void showMonth(
+        YearMonth loadedMonth, Map<LocalDate,
+            List<DeadlineSummary>> loadedDeadlines,
                           String message) {
         if (month.equals(loadedMonth)) {
             deadlines = loadedDeadlines;
@@ -54,6 +61,7 @@ public final class CalendarViewModel {
         }
     }
 
+    /** Selects a date if it belongs to the displayed month. */
     public void selectDate(LocalDate date) {
         if (month.equals(YearMonth.from(date))) {
             final LocalDate oldDate = selectedDate;
@@ -70,6 +78,7 @@ public final class CalendarViewModel {
         return selectedDate;
     }
 
+    /** Returns the deadlines for the date, or an empty list if there are none. */
     public List<DeadlineSummary> getDeadlines(LocalDate date) {
         return deadlines.getOrDefault(date, List.of());
     }

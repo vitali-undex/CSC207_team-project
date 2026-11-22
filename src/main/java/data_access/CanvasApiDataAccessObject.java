@@ -30,7 +30,8 @@ import java.util.regex.Pattern;
 
 /** Reads assignments for all active courses of one Canvas account. */
 public final class CanvasApiDataAccessObject implements CalendarAssignmentDataAccessInterface {
-    private static final Pattern NEXT_LINK = Pattern.compile("<([^>]+)>\\s*;\\s*rel=\"?next\"?(?=\\s*[,;]|\\s*$)");
+    private static final Pattern NEXT_LINK =
+        Pattern.compile("<([^>]+)>\\s*;\\s*rel=\"?next\"?(?=\\s*[,;]|\\s*$)");
     private static final Duration TIMEOUT = Duration.ofSeconds(10);
 
     private final HttpClient client;
@@ -38,6 +39,7 @@ public final class CanvasApiDataAccessObject implements CalendarAssignmentDataAc
     private final String token;
     private final Clock clock;
 
+    /** Creates a Canvas assignment source for the supplied server and account token. */
     public CanvasApiDataAccessObject(HttpClient client, URI origin, String token, Clock clock) {
         this.client = client;
         this.origin = origin;
@@ -50,25 +52,29 @@ public final class CanvasApiDataAccessObject implements CalendarAssignmentDataAc
         final List<Course> courses = new ArrayList<>();
         final List<Assignment> assignments = new ArrayList<>();
         try {
-            for (JsonObject course : loadPages("/api/v1/courses?enrollment_state=active&per_page=100")) {
+            for (JsonObject course
+                : loadPages("/api/v1/courses?enrollment_state=active&per_page=100")) {
                 final String id = requiredText(course, "id");
                 final String name = requiredText(course, "name");
                 final String code = optionalText(course, "course_code");
                 courses.add(new Course(id, code == null || code.isBlank() ? name : code, name));
 
-                final String path = "/api/v1/courses/" + URLEncoder.encode(id, StandardCharsets.UTF_8)
+                final String path =
+                    "/api/v1/courses/" + URLEncoder.encode(id, StandardCharsets.UTF_8)
                         + "/assignments?override_assignment_dates=true&per_page=100";
                 for (JsonObject assignment : loadPages(path)) {
                     final String due = optionalText(assignment, "due_at");
                     final String points = optionalText(assignment, "points_possible");
                     assignments.add(new Assignment(requiredText(assignment, "id"), id,
-                            requiredText(assignment, "name"), due == null ? null : Instant.parse(due),
-                            points == null ? null : assignment.get("points_possible").getAsBigDecimal()));
+                            requiredText(assignment, "name"), due == null ? null
+                                : Instant.parse(due),
+                            points == null ? null
+                                : assignment.get("points_possible").getAsBigDecimal()));
                 }
             }
         }
         catch (JsonParseException | IllegalStateException | UnsupportedOperationException
-               | DateTimeParseException | NumberFormatException exception) {
+                | DateTimeParseException | NumberFormatException exception) {
             throw new IOException("Invalid Canvas response.", exception);
         }
         return new CalendarSnapshot(courses, assignments, clock.instant());
@@ -131,7 +137,8 @@ public final class CanvasApiDataAccessObject implements CalendarAssignmentDataAc
             if (matcher.find()) {
                 try {
                     final String target = matcher.group(1);
-                    return current.resolve(target.startsWith("?") ? current.getRawPath() + target : target);
+                    return current.resolve(target.startsWith("?") ? current.getRawPath() + target
+                        : target);
                 }
                 catch (IllegalArgumentException exception) {
                     throw new IOException("Malformed Canvas pagination link.", exception);

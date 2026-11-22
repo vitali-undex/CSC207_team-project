@@ -48,7 +48,8 @@ public final class CalendarView extends JPanel {
     private static final int MAX_PREVIEWS = 2;
     private static final DateTimeFormatter DAY_TITLE =
             DateTimeFormatter.ofPattern("EEEE, MMMM d, uuuu", Locale.ENGLISH);
-    private static final DateTimeFormatter DUE_TIME = DateTimeFormatter.ofPattern("h:mm a z", Locale.ENGLISH);
+    private static final DateTimeFormatter DUE_TIME =
+            DateTimeFormatter.ofPattern("h:mm a z", Locale.ENGLISH);
 
     private final CalendarViewModel model;
     private final ViewDeadlinesCalendarController controller;
@@ -67,14 +68,16 @@ public final class CalendarView extends JPanel {
     private final JButton[] days = new JButton[WEEKS * DAYS_PER_WEEK];
     private boolean updatingControls;
 
-    public CalendarView(CalendarViewModel model, ViewDeadlinesCalendarController controller, Clock clock,
-                        boolean connected) {
+    /** Creates a calendar view for a connected account or a disconnected preview. */
+    public CalendarView(CalendarViewModel model, ViewDeadlinesCalendarController controller,
+                        Clock clock, boolean connected) {
         super(new BorderLayout(0, 16));
         this.model = model;
         this.controller = controller;
         this.clock = clock;
         this.connected = connected;
-        year = new JSpinner(new SpinnerNumberModel(model.getMonth().getYear(), FIRST_YEAR, LAST_YEAR, 1));
+        year = new JSpinner(new SpinnerNumberModel(
+                model.getMonth().getYear(), FIRST_YEAR, LAST_YEAR, 1));
         year.setEditor(new JSpinner.NumberEditor(year, "0"));
         year.getAccessibleContext().setAccessibleName("Year");
         month.getAccessibleContext().setAccessibleName("Month");
@@ -97,10 +100,12 @@ public final class CalendarView extends JPanel {
         render();
     }
 
+    /** Opens the calendar with today selected. */
     public void open() {
         open(LocalDate.now(clock));
     }
 
+    /** Opens the calendar on the given date. */
     public void open(LocalDate date) {
         loadDate(date);
     }
@@ -161,7 +166,8 @@ public final class CalendarView extends JPanel {
             cell.setContentAreaFilled(false);
             cell.setOpaque(true);
             cell.setForeground(INK);
-            cell.addActionListener(event -> controller.selectDate((LocalDate) cell.getClientProperty("date")));
+            cell.addActionListener(event ->
+                controller.selectDate((LocalDate) cell.getClientProperty("date")));
             days[index] = cell;
             grid.add(cell);
         }
@@ -219,10 +225,12 @@ public final class CalendarView extends JPanel {
                     }
                     catch (InterruptedException exception) {
                         Thread.currentThread().interrupt();
-                        model.showMonth(target, java.util.Map.of(), "Calendar load was interrupted.");
+                        model.showMonth(target, java.util.Map.of(),
+                            "Calendar load was interrupted.");
                     }
                     catch (ExecutionException exception) {
-                        model.showMonth(target, java.util.Map.of(), "Could not load the calendar. Try Refresh.");
+                        model.showMonth(target, java.util.Map.of(),
+                            "Could not load the calendar. Try Refresh.");
                     }
                 }
             }.execute();
@@ -247,7 +255,8 @@ public final class CalendarView extends JPanel {
         final int offset = displayed.atDay(1).getDayOfWeek().getValue() - 1;
         for (int index = 0; index < days.length; index++) {
             final int day = index - offset + 1;
-            final LocalDate date = day >= 1 && day <= displayed.lengthOfMonth() ? displayed.atDay(day) : null;
+            final LocalDate date =
+                day >= 1 && day <= displayed.lengthOfMonth() ? displayed.atDay(day) : null;
             final JButton cell = days[index];
             cell.putClientProperty("date", date);
             cell.setEnabled(date != null);
@@ -260,10 +269,13 @@ public final class CalendarView extends JPanel {
 
     private String dayPreview(LocalDate date) {
         final List<DeadlineSummary> deadlines = model.getDeadlines(date);
-        final StringBuilder text = new StringBuilder("<html><b>").append(date.getDayOfMonth()).append("</b>");
-        for (DeadlineSummary deadline : deadlines.subList(0, Math.min(MAX_PREVIEWS, deadlines.size()))) {
+        final StringBuilder text =
+            new StringBuilder("<html><b>").append(date.getDayOfMonth()).append("</b>");
+        final int previewCount = Math.min(MAX_PREVIEWS, deadlines.size());
+        for (DeadlineSummary deadline : deadlines.subList(0, previewCount)) {
             final String label = deadline.getCourse() + " · " + deadline.getTitle();
-            text.append("<br>").append(escape(label.length() > 18 ? label.substring(0, 17) + "…" : label));
+            final String preview = label.length() > 18 ? label.substring(0, 17) + "…" : label;
+            text.append("<br>").append(escape(preview));
         }
         if (deadlines.size() > MAX_PREVIEWS) {
             text.append("<br>+").append(deadlines.size() - MAX_PREVIEWS).append(" more");
@@ -280,7 +292,8 @@ public final class CalendarView extends JPanel {
             final boolean isSelected = selected.equals(cellDate);
             cell.setBackground(cellDate == null ? BACKGROUND : isSelected ? SELECTED : WHITE);
             cell.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(isToday || isSelected ? ACCENT : BORDER, isToday ? 2 : 1),
+                    BorderFactory.createLineBorder(
+                            isToday || isSelected ? ACCENT : BORDER, isToday ? 2 : 1),
                     BorderFactory.createEmptyBorder(3, 5, 3, 5)));
         }
 
@@ -290,18 +303,22 @@ public final class CalendarView extends JPanel {
             details.setListData(new String[]{"Your synced deadlines will appear here."});
         }
         else if (selectedDeadlines.isEmpty()) {
-            details.setListData(new String[]{model.isLoading() ? "Loading…" : "No deadlines for this day"});
+            final String message = model.isLoading() ? "Loading…" : "No deadlines for this day";
+            details.setListData(new String[]{message});
         }
         else {
-            details.setListData(selectedDeadlines.stream().map(CalendarView::detail).toArray(String[]::new));
+            details.setListData(selectedDeadlines.stream()
+                    .map(CalendarView::detail)
+                    .toArray(String[]::new));
         }
     }
 
     private static String detail(DeadlineSummary deadline) {
         final String points = deadline.getPointsPossible() == null ? "Points unavailable"
                 : deadline.getPointsPossible().stripTrailingZeros().toPlainString() + " pts";
-        return "<html><b>" + escape(deadline.getTitle()) + "</b><br>" + escape(deadline.getCourse()) + " · "
-                + DUE_TIME.format(deadline.getDueAt()) + " · " + points + "</html>";
+        return "<html><b>" + escape(deadline.getTitle()) + "</b><br>"
+                + escape(deadline.getCourse()) + " · " + DUE_TIME.format(deadline.getDueAt())
+                + " · " + points + "</html>";
     }
 
     private static String escape(String text) {
