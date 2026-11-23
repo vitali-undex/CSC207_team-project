@@ -24,6 +24,7 @@ public class TasksViewModel extends ViewModel<TasksState> {
     public static final String COURSE_COLUMN = "Course";
     public static final String DUE_COLUMN = "Due";
     public static final String PAST_DUE_DIALOG_TITLE = "Due date has passed";
+    public static final String INVALID_DUE_DATE_MESSAGE = "Please enter a valid due date.";
 
     /** Creates the view model with an empty task list. */
     public TasksViewModel() {

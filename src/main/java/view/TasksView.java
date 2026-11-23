@@ -13,6 +13,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -125,7 +126,12 @@ public class TasksView extends JPanel implements PropertyChangeListener {
         titleRow.add(new JLabel(TasksViewModel.TITLE_LABEL));
         titleRow.add(titleField);
 
-        dueDateSpinner.setEditor(new JSpinner.DateEditor(dueDateSpinner, "EEE, MMM d, yyyy"));
+        final JSpinner.DateEditor dateEditor =
+                new JSpinner.DateEditor(dueDateSpinner, "EEE, MMM d, yyyy");
+        dateEditor.getFormat().setLenient(false);
+        // Keep invalid input visible when Add task receives focus, so it can be rejected.
+        dateEditor.getTextField().setFocusLostBehavior(JFormattedTextField.PERSIST);
+        dueDateSpinner.setEditor(dateEditor);
         dueDateSpinner.setEnabled(false);
         hasDueDateBox.addActionListener(
                 event -> dueDateSpinner.setEnabled(hasDueDateBox.isSelected()));
@@ -206,8 +212,17 @@ public class TasksView extends JPanel implements PropertyChangeListener {
     }
 
     private void addTask(boolean pastDueConfirmed) {
-        addTaskController.execute(titleField.getText(), selectedCourseId(), selectedDueDate(),
-                pastDueConfirmed);
+        try {
+            addTaskController.execute(titleField.getText(), selectedCourseId(), selectedDueDate(),
+                    pastDueConfirmed);
+        }
+        catch (ParseException exception) {
+            final TasksState state = tasksViewModel.getState();
+            state.setErrorMessage(TasksViewModel.INVALID_DUE_DATE_MESSAGE);
+            state.setPastDueQuestion("");
+            tasksViewModel.setState(state);
+            tasksViewModel.firePropertyChanged();
+        }
     }
 
     /**
@@ -238,16 +253,11 @@ public class TasksView extends JPanel implements PropertyChangeListener {
         return selected.getCourseId();
     }
 
-    private LocalDate selectedDueDate() {
+    private LocalDate selectedDueDate() throws ParseException {
         if (!hasDueDateBox.isSelected()) {
             return null;
         }
-        try {
-            dueDateSpinner.commitEdit();
-        }
-        catch (ParseException exception) {
-            // The typed text is not a date, so the spinner keeps its last valid date.
-        }
+        dueDateSpinner.commitEdit();
         final Date date = (Date) dueDateSpinner.getValue();
         return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     }
